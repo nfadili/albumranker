@@ -1,5 +1,7 @@
 import type { ActionFunction, LoaderFunction } from 'remix';
 import { redirect } from 'remix';
+import { db } from '~/utils/db.server';
+import { saveSpotifyCredentials } from '~/utils/sessions.server';
 import { getSpotifyTokens } from '~/utils/spotify.server';
 
 export let loader: LoaderFunction = async ({ request }) => {
@@ -26,8 +28,8 @@ export let loader: LoaderFunction = async ({ request }) => {
 
     const tokens = await getSpotifyTokens(code);
 
-    // TODO: Set tokens in session somehow
-    console.log(tokens);
+    // Save the credentials for this user
+    await saveSpotifyCredentials(request, tokens);
 
     return redirect('/');
 };

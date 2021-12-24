@@ -17,3 +17,12 @@ model User {
   username     String   @unique
   passwordHash String
 }
+
+model UserSpotifyCredentials {
+  userId       String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  accessToken  String
+  refreshToken String
+  expiresIn    Int
+}

@@ -1,16 +1,19 @@
 import { Form, Link, LoaderFunction, useLoaderData } from 'remix';
-import { getUser } from '~/utils/sessions.server';
+import { getUser, getUserSpotifyCredentials } from '~/utils/sessions.server';
 import type { User } from '@prisma/client';
 
 type LoaderData = {
     user: User | null | undefined;
+    spotifyCreds: any; // TODO: Remove
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
     let user = await getUser(request);
+    const spotifyCreds = await getUserSpotifyCredentials(request);
 
     let data: LoaderData = {
-        user
+        user,
+        spotifyCreds
     };
 
     return data;
@@ -18,6 +21,11 @@ export let loader: LoaderFunction = async ({ request }) => {
 
 export default function Index() {
     let data = useLoaderData<LoaderData>();
+
+    const sp = () => {
+        console.log(data.spotifyCreds);
+        return <div>Creds are loaded!!</div>;
+    };
 
     return (
         <div>
@@ -39,6 +47,7 @@ export default function Index() {
                     ) : (
                         <Link to='/login'>Login</Link>
                     )}
+                    {data.spotifyCreds ? sp() : null}
                 </div>
             </header>
             <main className='jokes-main'>

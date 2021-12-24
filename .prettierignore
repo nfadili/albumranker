@@ -1,0 +1,7 @@
+.cache
+node_modules
+prisma
+.env
+
+public/build
+server/build

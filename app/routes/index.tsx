@@ -29,6 +29,7 @@ export default function Index() {
           {data.user ? (
             <div className="user-info">
               <span>{`Hi ${data.user.username}`}</span>
+              <Link to="/spotify/login">Login to spotify</Link>
               <Form action="/logout" method="post">
                 <button type="submit" className="button">
                   Logout

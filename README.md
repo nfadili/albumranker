@@ -1,6 +1,6 @@
 # Welcome to Remix!
 
-- [Remix Docs](https://remix.run/docs)
+-   [Remix Docs](https://remix.run/docs)
 
 ## Development
 
@@ -40,8 +40,8 @@ Now you'll need to pick a host to deploy it to.
 
 If you're familiar with deploying express applications you should be right at home just make sure to deploy the output of `remix build`
 
-- `server/build/`
-- `public/build/`
+-   `server/build/`
+-   `public/build/`
 
 ### Using a Template
 

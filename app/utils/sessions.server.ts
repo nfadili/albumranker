@@ -6,7 +6,7 @@ import { db } from './db.server';
 type SpotifyCredentials = {
     accessToken: string;
     refreshToken: string;
-    expiresIn: number;
+    expiresAt: string; // ISO8601 timestamp
 };
 
 type LoginForm = {

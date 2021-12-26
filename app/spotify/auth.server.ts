@@ -1,8 +1,8 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import type _SpotifyClient from 'spotify-web-api-node';
-import { db } from './db.server';
-import logger from './logger.server';
-import { getUserId, logout } from './sessions.server';
+import { db } from '../utils/db.server';
+import logger from '../utils/logger.server';
+import { getUserId, logout } from '../utils/sessions.server';
 
 /********************************************************
  * Types

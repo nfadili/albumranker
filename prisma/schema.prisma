@@ -17,6 +17,7 @@ model User {
   username          String                 @unique
   passwordHash      String
   spotifyCredential UserSpotifyCredential?
+  spotifyAlbums     UserSpotifyAlbum[]
 }
 
 model UserSpotifyCredential {
@@ -30,3 +31,16 @@ model UserSpotifyCredential {
   expiresAt    DateTime
 }
 
+model UserSpotifyAlbum {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  artist    String
+  year      String
+  rank      Int
+  spotifyId String   @unique
+
+  @@id([userId, spotifyId])
+}

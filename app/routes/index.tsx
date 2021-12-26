@@ -1,35 +1,39 @@
 import { Form, Link, LoaderFunction, useLoaderData } from 'remix';
-import { getUser, getUserSpotifyCredentials } from '~/utils/sessions.server';
+import { getUser } from '~/utils/sessions.server';
 import type { User } from '@prisma/client';
+import { getSpotifyClient, SpotifyClient } from '~/utils/spotify.server';
 
 type LoaderData = {
-    user: User | null | undefined;
-    spotifyCreds: any; // TODO: Remove
+    user?: User | null;
+    spotify?: SpotifyClient;
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
     let user = await getUser(request);
-    const spotifyCreds = await getUserSpotifyCredentials(request);
-
     let data: LoaderData = {
-        user,
-        spotifyCreds
+        user
     };
+
+    const spotify = await getSpotifyClient(request);
+    if (spotify) {
+        const t = await spotify.getMySavedTracks();
+        console.log(t.body.items.length)
+        data.spotify = spotify;
+    }
 
     return data;
 };
 
 export default function Index() {
-    let data = useLoaderData<LoaderData>();
+    const data = useLoaderData<LoaderData>();
 
     const sp = () => {
-        console.log(data.spotifyCreds);
         return <div>Creds are loaded!!</div>;
     };
 
     return (
         <div>
-            <header className='jokes-header'>
+            <header className='header'>
                 <div className='container'>
                     <h1 className='home-link'>
                         <Link to='/'>Home</Link>
@@ -47,13 +51,13 @@ export default function Index() {
                     ) : (
                         <Link to='/login'>Login</Link>
                     )}
-                    {data.spotifyCreds ? sp() : null}
+                    {data.spotify ? sp() : null}
                 </div>
             </header>
-            <main className='jokes-main'>
+            <main className='main'>
                 <div className='container'>TODO</div>
             </main>
-            <footer className='jokes-footer'>
+            <footer className='footer'>
                 <div className='container'>FOOTER</div>
             </footer>
         </div>

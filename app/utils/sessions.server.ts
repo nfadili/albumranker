@@ -1,13 +1,6 @@
 import bcrypt from 'bcrypt';
 import { createCookieSessionStorage, redirect } from 'remix';
-
-import { db } from './db.server';
-
-type SpotifyCredentials = {
-    accessToken: string;
-    refreshToken: string;
-    expiresAt: string; // ISO8601 timestamp
-};
+import { db } from '~/utils/db.server';
 
 type LoginForm = {
     username: string;
@@ -91,47 +84,3 @@ export async function createUserSession(userId: string, redirectTo: string) {
     });
 }
 
-export async function saveSpotifyCredentials(request: Request, credentials: SpotifyCredentials) {
-    const userId = await getUserId(request);
-    if (!userId) {
-        throw logout(request); // TODO: See if there is a better way
-    }
-
-    return db.userSpotifyCredentials.create({
-        data: {
-            userId,
-            ...credentials
-        }
-    });
-}
-
-export async function updateSpotifyCredentials(request: Request, credentials: SpotifyCredentials) {
-    const userId = await getUserId(request);
-    if (!userId) {
-        throw logout(request);
-    }
-
-    const existingCredentials = db.userSpotifyCredentials.findUnique({ where: { userId } });
-    if (!existingCredentials) {
-        return null;
-    }
-
-    return db.userSpotifyCredentials.update({
-        where: {
-            userId
-        },
-        data: {
-            ...credentials
-        }
-    });
-}
-
-export async function getUserSpotifyCredentials(request: Request) {
-    const userId = await getUserId(request);
-    if (!userId) {
-        return null;
-    }
-
-    const credentials = await db.userSpotifyCredentials.findUnique({ where: { userId } });
-    return credentials;
-}

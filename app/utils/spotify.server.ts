@@ -33,7 +33,7 @@ const SCOPES = [
     'user-read-recently-played',
     'user-follow-read'
 ];
-const EXPIRES_IN_MARGIN_MS = 58 * 60 * 1000; // 15min
+const EXPIRES_IN_MARGIN_MS = 5 * 60 * 1000; // 15min
 
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -68,10 +68,37 @@ const formatCredentials = ({
     };
 };
 
+const refreshCredentials = async (credentials: SpotifyCredentials) => {
+    const expiresAt = new Date(credentials.expiresAt);
+    const now = new Date();
+    if (expiresAt.getTime() >= now.getTime()) {
+        logger.info('reusing spotify credentials', {
+            expiresAt: expiresAt.toISOString(),
+            now: now.toISOString()
+        });
+        return credentials;
+    }
+
+    const spotifyRefreshClient = new SpotifyWebApi({
+        clientId,
+        clientSecret,
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken ? credentials.refreshToken : undefined
+    });
+    const { body } = await spotifyRefreshClient.refreshAccessToken();
+
+    logger.info('refreshed spotify credentials', {
+        expiresAt: expiresAt.toISOString(),
+        now: now.toISOString()
+    });
+
+    return formatCredentials(body);
+};
+
 /********************************************************
  * DB Interactions
  *********************************************************/
-export async function saveSpotifyCredentials(request: Request, credentials: SpotifyCredentials) {
+async function saveSpotifyCredentials(request: Request, credentials: SpotifyCredentials) {
     const userId = await getUserId(request);
     if (!userId) {
         throw logout(request); // TODO: See if there is a better way
@@ -87,7 +114,7 @@ export async function saveSpotifyCredentials(request: Request, credentials: Spot
     });
 }
 
-export async function updateSpotifyCredentials(request: Request, credentials: SpotifyCredentials) {
+async function updateSpotifyCredentials(request: Request, credentials: SpotifyCredentials) {
     const userId = await getUserId(request);
     if (!userId) {
         throw logout(request);
@@ -109,7 +136,7 @@ export async function updateSpotifyCredentials(request: Request, credentials: Sp
     });
 }
 
-export async function getUserSpotifyCredentials(
+async function getUserSpotifyCredentials(
     request: Request
 ): Promise<SpotifyCredentials | null> {
     const userId = await getUserId(request);
@@ -139,9 +166,11 @@ export const getAuthorizeUrl = () => {
 
 export const completeSpotifyAuthorization = async (request: Request, code: string) => {
     try {
+        // Complete the authorization flow after the user has granted access.
         const { body } = await spotifyServerClient.authorizationCodeGrant(code);
-
         const credentials = formatCredentials(body);
+
+        // Save the user's credentials for future use and to prevent having to re-login.
         await saveSpotifyCredentials(request, credentials);
     } catch (error) {
         const message = 'failed to get spotify tokens';
@@ -150,42 +179,18 @@ export const completeSpotifyAuthorization = async (request: Request, code: strin
     }
 };
 
-export const refreshCredentials = async (credentials: SpotifyCredentials) => {
-    const expiresAt = new Date(credentials.expiresAt);
-    const now = new Date();
-    if (expiresAt.getTime() >= now.getTime()) {
-        logger.info('reusing spotify credentials', {
-            expiresAt: expiresAt.toISOString(),
-            now: now.toISOString()
-        });
-        return credentials;
-    }
-
-    const spotifyRefreshClient = new SpotifyWebApi({
-        clientId,
-        clientSecret,
-        accessToken: credentials.accessToken,
-        refreshToken: credentials.refreshToken ? credentials.refreshToken : undefined
-    });
-    const { body } = await spotifyRefreshClient.refreshAccessToken();
-
-    logger.info('refreshed spotify credentials', {
-        expiresAt: expiresAt.toISOString(),
-        now: now.toISOString()
-    });
-
-    return formatCredentials(body);
-};
-
 export const getSpotifyClient = async (request: Request) => {
+    // If the user has not linked their spotify account a client cannot be used
     const credentials = await getUserSpotifyCredentials(request);
     if (!credentials) {
         return null;
     }
 
+    // Ensure credentials are valid and updated
     const refreshedCredentials = await refreshCredentials(credentials);
     await updateSpotifyCredentials(request, refreshedCredentials);
 
+    // Return a spotofy client instance with valid credentials
     const client = new SpotifyWebApi({
         accessToken: refreshedCredentials.accessToken,
         refreshToken: refreshedCredentials.refreshToken

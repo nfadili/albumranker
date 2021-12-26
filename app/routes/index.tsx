@@ -5,7 +5,7 @@ import { getSpotifyClient, SpotifyClient } from '~/utils/spotify.server';
 
 type LoaderData = {
     user?: User | null;
-    spotify?: SpotifyClient;
+    spotify?: SpotifyClient | null;
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
@@ -27,10 +27,6 @@ export let loader: LoaderFunction = async ({ request }) => {
 export default function Index() {
     const data = useLoaderData<LoaderData>();
 
-    const sp = () => {
-        return <div>Creds are loaded!!</div>;
-    };
-
     return (
         <div>
             <header className='header'>
@@ -41,7 +37,7 @@ export default function Index() {
                     {data.user ? (
                         <div className='user-info'>
                             <span>{`Hi ${data.user.username}`}</span>
-                            <Link to='/spotify/login'>Login to spotify</Link>
+                            { !data.spotify && <Link to='/spotify/login'>Login to spotify</Link> }
                             <Form action='/logout' method='post'>
                                 <button type='submit' className='button'>
                                     Logout
@@ -51,7 +47,7 @@ export default function Index() {
                     ) : (
                         <Link to='/login'>Login</Link>
                     )}
-                    {data.spotify ? sp() : null}
+                    {data.spotify ? <div>Logged into spotify!</div> : null}
                 </div>
             </header>
             <main className='main'>

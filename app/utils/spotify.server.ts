@@ -104,12 +104,18 @@ async function saveSpotifyCredentials(request: Request, credentials: SpotifyCred
         throw logout(request); // TODO: See if there is a better way
     }
 
-    return db.userSpotifyCredential.create({
+    return db.user.update({
+        where: {
+            id: userId
+        },
         data: {
-            userId,
-            accessToken: credentials.accessToken,
-            refreshToken: credentials.refreshToken as string,
-            expiresAt: credentials.expiresAt
+            spotifyCredential: {
+                create: {
+                    accessToken: credentials.accessToken,
+                    refreshToken: credentials.refreshToken as string,
+                    expiresAt: credentials.expiresAt
+                }
+            }
         }
     });
 }
@@ -125,20 +131,22 @@ async function updateSpotifyCredentials(request: Request, credentials: SpotifyCr
         return null;
     }
 
-    return db.userSpotifyCredential.update({
+    return db.user.update({
         where: {
-            userId
+            id: userId
         },
         data: {
-            accessToken: credentials.accessToken,
-            expiresAt: credentials.expiresAt
+            spotifyCredential: {
+                update: {
+                    accessToken: credentials.accessToken,
+                    expiresAt: credentials.expiresAt
+                }
+            }
         }
     });
 }
 
-async function getUserSpotifyCredentials(
-    request: Request
-): Promise<SpotifyCredentials | null> {
+async function getUserSpotifyCredentials(request: Request): Promise<SpotifyCredentials | null> {
     const userId = await getUserId(request);
     if (!userId) {
         return null;

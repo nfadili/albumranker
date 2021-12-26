@@ -104,7 +104,7 @@ async function saveSpotifyCredentials(request: Request, credentials: SpotifyCred
         throw logout(request); // TODO: See if there is a better way
     }
 
-    return db.userSpotifyCredentials.create({
+    return db.userSpotifyCredential.create({
         data: {
             userId,
             accessToken: credentials.accessToken,
@@ -120,12 +120,12 @@ async function updateSpotifyCredentials(request: Request, credentials: SpotifyCr
         throw logout(request);
     }
 
-    const existingCredentials = db.userSpotifyCredentials.findUnique({ where: { userId } });
+    const existingCredentials = db.userSpotifyCredential.findUnique({ where: { userId } });
     if (!existingCredentials) {
         return null;
     }
 
-    return db.userSpotifyCredentials.update({
+    return db.userSpotifyCredential.update({
         where: {
             userId
         },
@@ -144,7 +144,7 @@ async function getUserSpotifyCredentials(
         return null;
     }
 
-    const credentials = await db.userSpotifyCredentials.findUnique({ where: { userId } });
+    const credentials = await db.userSpotifyCredential.findUnique({ where: { userId } });
     if (!credentials) {
         return null;
     }

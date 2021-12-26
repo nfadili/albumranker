@@ -18,7 +18,7 @@ model User {
   passwordHash String
 }
 
-model UserSpotifyCredentials {
+model UserSpotifyCredential {
   userId       String   @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -26,3 +26,4 @@ model UserSpotifyCredentials {
   refreshToken String
   expiresAt    DateTime
 }
+

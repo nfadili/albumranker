@@ -93,16 +93,12 @@ export let action: ActionFunction = async ({ request }): Promise<Response | Acti
 export default function Login() {
     const actionData = useActionData<ActionData | undefined>();
     return (
-        <div className='container'>
-            <div className='content' data-light=''>
-                <h1>Login</h1>
-                <Form
-                    method='post'
-                    aria-describedby={actionData?.formError ? 'form-error-message' : undefined}
-                >
-                    <fieldset>
-                        <legend className='sr-only'>Login or Register?</legend>
-                        <label>
+        <div className='page'>
+            <div className='box has-text-centered'>
+                <Form method='post' className='control'>
+                    <fieldset className='field'>
+                        <legend>Login or Register?</legend>
+                        <label className='radio'>
                             <input
                                 type='radio'
                                 name='loginType'
@@ -114,7 +110,7 @@ export default function Login() {
                             />{' '}
                             Login
                         </label>
-                        <label>
+                        <label className='radio'>
                             <input
                                 type='radio'
                                 name='loginType'
@@ -124,57 +120,49 @@ export default function Login() {
                             Register
                         </label>
                     </fieldset>
-                    <div>
-                        <label htmlFor='username-input'>Username</label>
+                    <div className='field'>
                         <input
                             type='text'
                             id='username-input'
                             name='username'
+                            required
                             defaultValue={actionData?.fields?.username}
-                            aria-invalid={Boolean(actionData?.fieldErrors?.username)}
-                            aria-describedby={
-                                actionData?.fieldErrors?.username ? 'username-error' : undefined
-                            }
+                            placeholder='Username'
+                            className='input is-medium'
                         />
                         {actionData?.fieldErrors?.username ? (
-                            <p className='form-validation-error' role='alert' id='username-error'>
+                            <p role='alert' id='username-error'>
                                 {actionData.fieldErrors.username}
                             </p>
                         ) : null}
                     </div>
-                    <div>
-                        <label htmlFor='password-input'>Password</label>
+                    <div className='field'>
                         <input
                             id='password-input'
                             name='password'
+                            required
                             defaultValue={actionData?.fields?.password}
                             type='password'
-                            aria-invalid={Boolean(actionData?.fieldErrors?.password)}
-                            aria-describedby={
-                                actionData?.fieldErrors?.password ? 'password-error' : undefined
-                            }
+                            placeholder='Password'
+                            className='input is-medium'
                         />
                         {actionData?.fieldErrors?.password ? (
-                            <p className='form-validation-error' role='alert' id='password-error'>
+                            <p role='alert' id='password-error'>
                                 {actionData.fieldErrors.password}
                             </p>
                         ) : null}
                     </div>
                     <div id='form-error-message'>
-                        {actionData?.formError ? (
-                            <p className='form-validation-error' role='alert'>
-                                {actionData.formError}
-                            </p>
-                        ) : null}
+                        {actionData?.formError ? <p role='alert'>{actionData.formError}</p> : null}
                     </div>
-                    <button type='submit' className='button'>
+                    <button type='submit' className='button is-block is-fullwidth is-primary is-medium'>
                         Submit
                     </button>
                 </Form>
-            </div>
-            <br />
-            <div>
-                <Link to='/'>Back home</Link>
+                <br />
+                <div>
+                    <Link to='/'>Back home</Link>
+                </div>
             </div>
         </div>
     );

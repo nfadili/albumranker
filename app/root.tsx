@@ -24,7 +24,7 @@ export let links: LinksFunction = () => {
 };
 
 export const meta: MetaFunction = () => {
-    return { title: 'New Remix App', viewport: 'width=device-width,initial-scale=1' };
+    return { title: 'AlbumRanker', viewport: 'width=device-width,initial-scale=1' };
 };
 
 export let loader: LoaderFunction = ({ request }) => {
@@ -67,7 +67,7 @@ function Document({ children, title }: { children: React.ReactNode; title?: stri
 
 export default function App() {
     return (
-        <Document title="Remix: So great, it's funny!">
+        <Document title='Album Ranker'>
             <Outlet />
         </Document>
     );
@@ -78,7 +78,7 @@ export function CatchBoundary() {
 
     return (
         <Document title={`${caught.status} ${caught.statusText}`}>
-            <div className='error-container'>
+            <div className='container'>
                 <h1>
                     {caught.status} {caught.statusText}
                 </h1>
@@ -91,9 +91,9 @@ export function ErrorBoundary({ error }: { error: Error }) {
     console.error(error);
 
     return (
-        <Document title='Uh-oh!'>
-            <div className='error-container'>
-                <h1>App Error</h1>
+        <Document title='Something went wrong'>
+            <div className='container'>
+                <h1>Application Error</h1>
                 <pre>{error.message}</pre>
             </div>
         </Document>

@@ -12,9 +12,9 @@ export let action: ActionFunction = async ({ request }) => {
 export default function Sync() {
     const transition = useTransition();
 
-	if (transition.submission) {
-		return <p>Syncing...</p>
-	}
+    if (transition.submission) {
+        return <p>Syncing...</p>;
+    }
 
     return (
         <div>

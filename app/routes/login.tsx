@@ -3,6 +3,7 @@ import { useActionData, Form } from 'remix';
 import { login, createUserSession, register } from '~/utils/sessions.server';
 import { db } from '~/utils/db.server';
 import stylesUrl from '../styles/login.css';
+import NavBar from '~/components/navbar';
 
 type ActionData = {
     formError?: string;
@@ -93,77 +94,85 @@ export let action: ActionFunction = async ({ request }): Promise<Response | Acti
 export default function Login() {
     const actionData = useActionData<ActionData | undefined>();
     return (
-        <div className='page'>
-            <div className='box has-text-centered'>
-                <Form method='post' className='control'>
-                    <fieldset className='field'>
-                        <legend>Login or Register?</legend>
-                        <label className='radio'>
+        <>
+            <NavBar />
+            <div className='page'>
+                <div className='box has-text-centered'>
+                    <Form method='post' className='control'>
+                        <fieldset className='field'>
+                            <legend>Login or Register?</legend>
+                            <label className='radio'>
+                                <input
+                                    type='radio'
+                                    name='loginType'
+                                    value='login'
+                                    defaultChecked={
+                                        !actionData?.fields?.loginType ||
+                                        actionData?.fields?.loginType === 'login'
+                                    }
+                                />{' '}
+                                Login
+                            </label>
+                            <label className='radio'>
+                                <input
+                                    type='radio'
+                                    name='loginType'
+                                    value='register'
+                                    defaultChecked={actionData?.fields?.loginType === 'register'}
+                                />{' '}
+                                Register
+                            </label>
+                        </fieldset>
+                        <div className='field'>
                             <input
-                                type='radio'
-                                name='loginType'
-                                value='login'
-                                defaultChecked={
-                                    !actionData?.fields?.loginType ||
-                                    actionData?.fields?.loginType === 'login'
-                                }
-                            />{' '}
-                            Login
-                        </label>
-                        <label className='radio'>
+                                type='text'
+                                id='username-input'
+                                name='username'
+                                required
+                                defaultValue={actionData?.fields?.username}
+                                placeholder='Username'
+                                className='input is-medium'
+                            />
+                            {actionData?.fieldErrors?.username ? (
+                                <p role='alert' id='username-error'>
+                                    {actionData.fieldErrors.username}
+                                </p>
+                            ) : null}
+                        </div>
+                        <div className='field'>
                             <input
-                                type='radio'
-                                name='loginType'
-                                value='register'
-                                defaultChecked={actionData?.fields?.loginType === 'register'}
-                            />{' '}
-                            Register
-                        </label>
-                    </fieldset>
-                    <div className='field'>
-                        <input
-                            type='text'
-                            id='username-input'
-                            name='username'
-                            required
-                            defaultValue={actionData?.fields?.username}
-                            placeholder='Username'
-                            className='input is-medium'
-                        />
-                        {actionData?.fieldErrors?.username ? (
-                            <p role='alert' id='username-error'>
-                                {actionData.fieldErrors.username}
-                            </p>
-                        ) : null}
+                                id='password-input'
+                                name='password'
+                                required
+                                defaultValue={actionData?.fields?.password}
+                                type='password'
+                                placeholder='Password'
+                                className='input is-medium'
+                            />
+                            {actionData?.fieldErrors?.password ? (
+                                <p role='alert' id='password-error'>
+                                    {actionData.fieldErrors.password}
+                                </p>
+                            ) : null}
+                        </div>
+                        <div id='form-error-message'>
+                            {actionData?.formError ? (
+                                <p role='alert'>{actionData.formError}</p>
+                            ) : null}
+                        </div>
+                        <button
+                            type='submit'
+                            className='button is-block is-fullwidth is-primary is-medium'
+                        >
+                            Submit
+                        </button>
+                    </Form>
+                    <br />
+                    <div>
+                        <Link to='/'>Back home</Link>
                     </div>
-                    <div className='field'>
-                        <input
-                            id='password-input'
-                            name='password'
-                            required
-                            defaultValue={actionData?.fields?.password}
-                            type='password'
-                            placeholder='Password'
-                            className='input is-medium'
-                        />
-                        {actionData?.fieldErrors?.password ? (
-                            <p role='alert' id='password-error'>
-                                {actionData.fieldErrors.password}
-                            </p>
-                        ) : null}
-                    </div>
-                    <div id='form-error-message'>
-                        {actionData?.formError ? <p role='alert'>{actionData.formError}</p> : null}
-                    </div>
-                    <button type='submit' className='button is-block is-fullwidth is-primary is-medium'>
-                        Submit
-                    </button>
-                </Form>
-                <br />
-                <div>
-                    <Link to='/'>Back home</Link>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

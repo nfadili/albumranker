@@ -2,6 +2,10 @@ import bcrypt from 'bcrypt';
 import { createCookieSessionStorage, redirect } from 'remix';
 import { db } from '~/utils/db.server';
 
+import type { User as _User } from '@prisma/client';
+
+export type User = _User;
+
 type LoginForm = {
     username: string;
     password: string;
@@ -83,4 +87,3 @@ export async function createUserSession(userId: string, redirectTo: string) {
         headers: { 'Set-Cookie': await commitSession(session) }
     });
 }
-

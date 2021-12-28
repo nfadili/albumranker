@@ -88,8 +88,6 @@ export function CatchBoundary() {
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
-    console.error(error);
-
     return (
         <Document title='Something went wrong'>
             <div className='container'>

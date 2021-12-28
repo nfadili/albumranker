@@ -1,7 +1,7 @@
 import { Form, Link, LoaderFunction, useLoaderData } from 'remix';
-import type { User } from '@prisma/client';
-import { getUser } from '~/utils/sessions.server';
+import { User, getUser } from '~/utils/sessions.server';
 import { isSpotifyAccountLinked } from '~/spotify/client.server';
+import NavBar from '~/components/navbar';
 
 type LoaderData = {
     user?: User | null;
@@ -24,6 +24,7 @@ export default function Index() {
 
     return (
         <div>
+            <NavBar/>
             <header className='header'>
                 <div className='container'>
                     <h1 className='home-link'>
@@ -32,7 +33,9 @@ export default function Index() {
                     {data.user ? (
                         <div className='user-info'>
                             <span>{`Hi ${data.user.username}`}</span>
-                            { !data.spotifyEnabled && <Link to='/spotify/login'>Login to spotify</Link> }
+                            {!data.spotifyEnabled && (
+                                <Link to='/spotify/login'>Login to spotify</Link>
+                            )}
                             <Form action='/logout' method='post'>
                                 <button type='submit' className='button'>
                                     Logout

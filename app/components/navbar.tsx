@@ -1,27 +1,15 @@
-import { Link, LoaderFunction, useLoaderData } from 'remix';
-import { getUser, User } from '~/utils/sessions.server';
+import { Link } from 'remix';
+import { User } from '~/utils/sessions.server';
 
-type LoaderData = {
+interface IProps {
     user: User | null;
-};
+}
 
-export const loader: LoaderFunction = async ({ request }) => {
-	console.log(':LKJSDF:LKJSDF:LKJ')
-    const user = await getUser(request);
-    const data: LoaderData = {
-        user
-    };
-    return data;
-};
-
-export default function NavBar() {
-    const data = useLoaderData();
-    console.log('LOADER DATA', data);
-
+export default function NavBar({ user }: IProps) {
     return (
         <nav className='navbar' role='navigation'>
             <div className='navbar-brand'>
-                <a className='navbar-item' href='https://bulma.io'>
+                <a className='navbar-item' href='/'>
                     <img src='/img/logo.png' width='112' height='28' />
                 </a>
             </div>
@@ -50,8 +38,8 @@ export default function NavBar() {
                 <div className='navbar-end'>
                     <div className='navbar-item'>
                         <div className='buttons'>
-                            {data.user ? (
-                                <Link to='/logout'>Logout</Link>
+                            {user ? (
+                                <Link to='/profile'>Profile</Link>
                             ) : (
                                 <>
                                     <Link to='/register' className='button is-light'>

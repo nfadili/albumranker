@@ -32,15 +32,15 @@ model UserSpotifyCredential {
 }
 
 model UserSpotifyAlbum {
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String
-  artist    String
-  year      String
-  rank      Int
-  spotifyId String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  artist      String
+  releaseDate String
+  rank        Int?
+  spotifyId   String   @unique
 
   @@id([userId, spotifyId])
 }

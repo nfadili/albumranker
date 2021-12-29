@@ -1,11 +1,9 @@
 import { ActionFunction, Form, LoaderFunction, useTransition } from 'remix';
 import { redirect } from 'remix';
-import { getAllAlbumsForUser } from '~/spotify/client.server';
+import { syncAllAlbumsForUser } from '~/spotify/client.server';
 
 export let action: ActionFunction = async ({ request }) => {
-    const albums = await getAllAlbumsForUser(request);
-
-    console.log(albums.length);
+    await syncAllAlbumsForUser(request);
     return redirect('/');
 };
 

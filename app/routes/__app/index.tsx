@@ -1,6 +1,6 @@
 import { Form, Link, LoaderFunction, redirect, useLoaderData } from 'remix';
 import { User, getUser } from '~/utils/sessions.server';
-import { isSpotifyAccountLinked } from '~/spotify/client.server';
+import { getAllUserAlbumsByYear, isSpotifyAccountLinked } from '~/spotify/client.server';
 
 type LoaderData = {
     user?: User | null;
@@ -8,11 +8,14 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-    return null;
+    const a = await getAllUserAlbumsByYear(request, '1992');
+    return a;
 };
 
 export default function Index() {
     const data = useLoaderData<LoaderData>();
+
+    console.log(data)
 
     return (
         <div>

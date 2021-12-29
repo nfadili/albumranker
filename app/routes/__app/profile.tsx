@@ -49,7 +49,7 @@ export default function Index() {
                         ) : (
                             <Link to='/auth/login'>Login</Link>
                         )}
-                        {spotifyEnabled ? <div>Logged into spotify!</div> : null}
+                        {spotifyEnabled ? <a href='/spotify/sync'>Sync spotify albums</a> : null}
                     </div>
                 </div>
             </main>

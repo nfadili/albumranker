@@ -8,7 +8,7 @@ export async function isSpotifyAccountLinked(request: Request) {
     return !!client;
 }
 
-export async function getAllAlbumsForUser(request: Request) {
+export async function getAllSavedAlbumsForUser(request: Request) {
     const client = await getSpotifyClient(request);
 
     const limit = 50;
@@ -28,6 +28,24 @@ export async function getAllAlbumsForUser(request: Request) {
     return allAlbums;
 }
 
+export async function getAllUserAlbumsByYear(request: Request, year: string) {
+    // User must be logged in
+    const user = await getUser(request);
+    if (!user) {
+        throw redirect('/auth/login');
+    }
+
+    return db.userSpotifyAlbum.findMany({
+        where: {
+            userId: user.id,
+            releaseDate: {
+                gte: new Date(`${year}-01-01`),
+                lte: new Date(`${year}-12-31`)
+            }
+        }
+    })
+}
+
 export async function syncAllAlbumsForUser(request: Request) {
     // User must be logged in
     const user = await getUser(request);
@@ -36,7 +54,7 @@ export async function syncAllAlbumsForUser(request: Request) {
     }
 
     // Retrieve all of the user's saved albums
-    const albums = await getAllAlbumsForUser(request);
+    const albums = await getAllSavedAlbumsForUser(request);
 
     // Attempt to create a record of each album. Ignore errors
     for (const { album } of albums) {
@@ -44,9 +62,9 @@ export async function syncAllAlbumsForUser(request: Request) {
             const a = await db.userSpotifyAlbum.create({
                 data: {
                     userId: user.id,
-                    artist: album.artists.join(', '),
+                    artist: album.artists.map(a => a.name).join(', '),
                     name: album.name,
-                    releaseDate: album.release_date,
+                    releaseDate: new Date(album.release_date),
                     rank: null,
                     spotifyId: album.id
                 }

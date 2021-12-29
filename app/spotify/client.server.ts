@@ -2,6 +2,9 @@ import { redirect } from 'remix';
 import { getSpotifyClient } from '~/spotify/auth.server';
 import { db } from '~/utils/db.server';
 import { getUser } from '~/utils/sessions.server';
+import type { UserSpotifyAlbum as _UserSpotifyAlbum } from '@prisma/client';
+
+export type UserSpotifyAlbum = _UserSpotifyAlbum;
 
 export async function isSpotifyAccountLinked(request: Request) {
     const client = await getSpotifyClient(request);
@@ -38,12 +41,32 @@ export async function getAllUserAlbumsByYear(request: Request, year: string) {
     return db.userSpotifyAlbum.findMany({
         where: {
             userId: user.id,
-            releaseDate: {
-                gte: new Date(`${year}-01-01`),
-                lte: new Date(`${year}-12-31`)
-            }
+            year
+        },
+        orderBy: {
+            rank: 'asc'
         }
-    })
+    });
+}
+
+export async function getAllUserAlbumYears(request: Request) {
+    // User must be logged in
+    const user = await getUser(request);
+    if (!user) {
+        throw redirect('/auth/login');
+    }
+
+    const years = await db.userSpotifyAlbum.findMany({
+        select: {
+            year: true
+        },
+        orderBy: {
+            year: 'desc'
+        },
+        distinct: ['year'],
+    });
+
+    return years.map(y => y.year);
 }
 
 export async function syncAllAlbumsForUser(request: Request) {
@@ -62,14 +85,15 @@ export async function syncAllAlbumsForUser(request: Request) {
             const a = await db.userSpotifyAlbum.create({
                 data: {
                     userId: user.id,
-                    artist: album.artists.map(a => a.name).join(', '),
+                    artist: album.artists.map((a) => a.name).join(', '),
                     name: album.name,
                     releaseDate: new Date(album.release_date),
+                    year: new Date(album.release_date).getFullYear().toString(),
                     rank: null,
                     spotifyId: album.id
                 }
             });
-            console.log('success creating album', a.name)
+            console.log('success creating album', a.name);
         } catch (error) {
             console.log('error creating album', album.name);
         }

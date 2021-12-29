@@ -39,6 +39,7 @@ model UserSpotifyAlbum {
   name        String
   artist      String
   releaseDate DateTime
+  year        String
   rank        Int?
   spotifyId   String   @unique
 

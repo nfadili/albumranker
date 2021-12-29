@@ -1,6 +1,5 @@
-import type { ActionFunction, LoaderFunction } from 'remix';
+import type { LoaderFunction } from 'remix';
 import { redirect } from 'remix';
-import { db } from '~/utils/db.server';
 import { completeSpotifyAuthorization } from '~/spotify/auth.server';
 
 export let loader: LoaderFunction = async ({ request }) => {

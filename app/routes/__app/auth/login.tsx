@@ -1,7 +1,6 @@
 import { ActionFunction, HeadersFunction, Link, LinksFunction, MetaFunction } from 'remix';
 import { useActionData, Form } from 'remix';
-import { login, createUserSession, register } from '~/utils/sessions.server';
-import { db } from '~/utils/db.server';
+import { login, createUserSession, doesUserExist, register } from '~/utils/sessions.server';
 import stylesUrl from '~/styles/login.css';
 
 type ActionData = {
@@ -68,7 +67,7 @@ export let action: ActionFunction = async ({ request }): Promise<Response | Acti
             return createUserSession(user.id, '/');
         }
         case 'register': {
-            let userExists = await db.user.findFirst({ where: { username } });
+            const userExists = await doesUserExist(username);
             if (userExists) {
                 return {
                     fields,

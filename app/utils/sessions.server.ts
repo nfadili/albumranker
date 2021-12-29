@@ -73,6 +73,11 @@ export async function getUser(request: Request) {
     }
 }
 
+export async function doesUserExist(username: string) {
+    const user = await db.user.findFirst({ where: { username } });
+    return !!user;
+}
+
 export async function logout(request: Request) {
     const session = await getSession(request.headers.get('Cookie'));
     return redirect('/auth/login', {

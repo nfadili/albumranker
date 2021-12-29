@@ -63,7 +63,7 @@ export default function Index() {
                         ))}
                     </select>
                 </div>
-                <AlbumTable columns={columns} data={data} />
+                <AlbumTable key={selectedYear} columns={columns} data={data} />
             </main>
             <footer className='footer'>
                 <div className='container'>FOOTER</div>

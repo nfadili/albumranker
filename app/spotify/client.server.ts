@@ -63,12 +63,33 @@ export async function getAllUserAlbumYears(request: Request) {
         orderBy: {
             year: 'desc'
         },
-        distinct: ['year'],
+        distinct: ['year']
     });
 
-    return years.map(y => y.year);
+    return years.map((y) => y.year);
 }
 
+export async function saveUserAlbumsForYear(request: Request, albums: UserSpotifyAlbum[]) {
+    // User must be logged in
+    const user = await getUser(request);
+    if (!user) {
+        throw redirect('/auth/login');
+    }
+
+    for (const album of albums) {
+        await db.userSpotifyAlbum.update({
+            where: {
+                userId_spotifyId: {
+                    userId: user.id,
+                    spotifyId: album.spotifyId
+                }
+            },
+            data: {
+                rank: album.rank
+            }
+        });
+    }
+}
 export async function syncAllAlbumsForUser(request: Request) {
     // User must be logged in
     const user = await getUser(request);

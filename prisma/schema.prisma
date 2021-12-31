@@ -41,7 +41,7 @@ model UserSpotifyAlbum {
   releaseDate DateTime
   year        String
   rank        Int?
-  spotifyId   String   @unique
+  spotifyId   String 
 
   @@id([userId, spotifyId])
 }

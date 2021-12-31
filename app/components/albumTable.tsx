@@ -5,16 +5,17 @@ import debounce from 'lodash.debounce';
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper';
-import { UserSpotifyAlbum } from '@prisma/client';
+import { UserSpotifyAlbum } from '~/spotify/client.server';
 
 const DND_ITEM_TYPE = 'row';
 
 interface IProps {
     columns: readonly Column[];
-    data: readonly {}[];
+    data: UserSpotifyAlbum[];
+	onChange: (albums: UserSpotifyAlbum[]) => void;
 }
 
-export function AlbumTable({ columns, data }: IProps) {
+export function AlbumTable({ columns, data, onChange }: IProps) {
     const [records, setRecords] = useState(data);
 
     const getRowId = useCallback((row) => {
@@ -22,21 +23,21 @@ export function AlbumTable({ columns, data }: IProps) {
     }, []);
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
-        data: records,
+        data: records as {}[],
         columns,
         getRowId
     });
 
     const moveRow = (dragIndex: number, hoverIndex: number) => {
         const dragRecord = records[dragIndex];
-        setRecords(
-            update(records, {
-                $splice: [
-                    [dragIndex, 1],
-                    [hoverIndex, 0, dragRecord]
-                ]
-            })
-        );
+        const updatedRecords = update(records, {
+            $splice: [
+                [dragIndex, 1],
+                [hoverIndex, 0, dragRecord]
+            ]
+        });
+        setRecords(updatedRecords);
+		onChange(updatedRecords);
     };
 
     return (
@@ -105,9 +106,9 @@ const Row = ({
             const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
             // Determine mouse position
             const clientOffset = monitor.getClientOffset();
-			if (clientOffset === null) {
-				return;
-			}
+            if (clientOffset === null) {
+                return;
+            }
             // Get pixels to the top
             const hoverClientY = clientOffset.y - hoverBoundingRect.top;
             // Only perform the move when the mouse has crossed half of the items height

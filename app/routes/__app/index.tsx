@@ -34,8 +34,14 @@ export const loader: LoaderFunction = async ({ request }) => {
     const url = new URL(request.url);
     const year = getYearOrDefaultFromSearchParams(url.searchParams);
 
-    console.log('YEAR', year);
     const years = await getAllUserAlbumYears(request);
+
+    // If the use has not albums from the current year, add the current year as an option
+    const currentYear = new Date().getFullYear().toString()
+    if (!years.includes(currentYear)) {
+       years.unshift(currentYear) 
+    }
+    
     const data = await getAllUserAlbumsByYear(request, year);
     const columns = [
         { Header: 'Name', accessor: 'name' },
@@ -55,7 +61,7 @@ export const action: ActionFunction = async ({ request }) => {
     const albums = form.get('albums');
     const parsedAlbums: UserSpotifyAlbum[] = JSON.parse(albums as string);
     const rankedAlbums = parsedAlbums.map((album, i) => ({ ...album, rank: i }));
-    
+
     await saveUserAlbumsForYear(request, rankedAlbums);
     return redirect(`/?year=${year}`);
 };
@@ -76,8 +82,7 @@ export default function Index() {
     };
 
     return (
-        <div>
-            <header className='header'>{}</header>
+        <>
             <main className='main'>
                 <div className='select'>
                     <select name='year' value={selectedYear} onChange={handleYearChange}>
@@ -88,21 +93,32 @@ export default function Index() {
                         ))}
                     </select>
                 </div>
-                <AlbumTable
-                    key={selectedYear}
-                    columns={columns}
-                    data={data}
-                    onChange={handleAlbumChange}
-                />
-                <Form method='post'>
-                    <input hidden readOnly name='albums' value={JSON.stringify(orderedAlbums)} />
-                    <input hidden readOnly name='year' value={selectedYear} />
-                    <button className='button is-primary'>Save</button>
-                </Form>
+                {data.length === 0 ? (
+                    <h3>You have no albums for this year</h3>
+                ) : (
+                    <>
+                        <AlbumTable
+                            key={selectedYear}
+                            columns={columns}
+                            data={data}
+                            onChange={handleAlbumChange}
+                        />
+                        <Form method='post'>
+                            <input
+                                hidden
+                                readOnly
+                                name='albums'
+                                value={JSON.stringify(orderedAlbums)}
+                            />
+                            <input hidden readOnly name='year' value={selectedYear} />
+                            <button className='button is-primary'>Save</button>
+                        </Form>
+                    </>
+                )}
             </main>
             <footer className='footer'>
                 {actionData?.success && <div className='container'>Successfully Updated</div>}
             </footer>
-        </div>
+        </>
     );
 }

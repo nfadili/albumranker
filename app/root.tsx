@@ -55,6 +55,10 @@ function Document({ children, title }: { children: React.ReactNode; title?: stri
                 <Meta />
                 {title ? <title>{title}</title> : null}
                 <Links />
+                <script
+                    src='https://kit.fontawesome.com/a6d10f2d20.js'
+                    crossOrigin='anonymous'
+                ></script>
             </head>
             <body>
                 {children}

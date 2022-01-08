@@ -12,7 +12,7 @@ const DND_ITEM_TYPE = 'row';
 interface IProps {
     columns: readonly Column[];
     data: UserSpotifyAlbum[];
-	onChange: (albums: UserSpotifyAlbum[]) => void;
+    onChange: (albums: UserSpotifyAlbum[]) => void;
 }
 
 export function AlbumTable({ columns, data, onChange }: IProps) {
@@ -37,7 +37,7 @@ export function AlbumTable({ columns, data, onChange }: IProps) {
             ]
         });
         setRecords(updatedRecords);
-		onChange(updatedRecords);
+        onChange(updatedRecords);
     };
 
     return (
@@ -147,7 +147,9 @@ const Row = ({
 
     return (
         <tr ref={dropRef} style={{ opacity }}>
-            <td ref={dragRef}>move</td>
+            <td ref={dragRef}>
+                <i className='fas fa-grip-vertical'></i>
+            </td>
             {row.cells.map((cell) => {
                 return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;
             })}

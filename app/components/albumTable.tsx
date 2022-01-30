@@ -129,7 +129,7 @@ const Row = ({
             // but it's good here for the sake of performance
             // to avoid expensive index searches.
             item.index = hoverIndex;
-        }, 10) // TODO: Might need to mess with this a bit more to fine tune it
+        }, 1) // TODO: Might need to mess with this a bit more to fine tune it
     });
 
     const [{ isDragging }, drag, preview] = useDrag({
@@ -148,7 +148,7 @@ const Row = ({
     return (
         <tr ref={dropRef} style={{ opacity }}>
             <td ref={dragRef}>
-                <i className='fas fa-grip-vertical'></i>
+                <i aria-hidden className='fas fa-grip-vertical'/>
             </td>
             {row.cells.map((cell) => {
                 return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;

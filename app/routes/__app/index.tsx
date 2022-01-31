@@ -1,14 +1,10 @@
 import {
     ActionFunction,
     Form,
-    json,
-    Link,
     LoaderFunction,
     redirect,
-    useActionData,
     useLoaderData,
     useSearchParams,
-    useSubmit
 } from 'remix';
 import {
     getAllUserAlbumsByYear,
@@ -24,6 +20,10 @@ function getYearOrDefaultFromSearchParams(searchParams: URLSearchParams) {
     return searchParams.get('year') ?? new Date().getFullYear().toString();
 }
 
+function getErrorFromSearchParams(searchParams: URLSearchParams) {
+    return !!searchParams.get('error');
+}
+
 type LoaderData = {
     data: UserSpotifyAlbum[];
     columns: Column[];
@@ -37,11 +37,11 @@ export const loader: LoaderFunction = async ({ request }) => {
     const years = await getAllUserAlbumYears(request);
 
     // If the use has not albums from the current year, add the current year as an option
-    const currentYear = new Date().getFullYear().toString()
+    const currentYear = new Date().getFullYear().toString();
     if (!years.includes(currentYear)) {
-       years.unshift(currentYear) 
+        years.unshift(currentYear);
     }
-    
+
     const data = await getAllUserAlbumsByYear(request, year);
     const columns = [
         { Header: 'Name', accessor: 'name' },
@@ -51,27 +51,31 @@ export const loader: LoaderFunction = async ({ request }) => {
     return { data, columns, years };
 };
 
-type ActionData = {
-    success: boolean;
-};
+type ActionData = {};
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData();
     const year = form.get('year');
     const albums = form.get('albums');
-    const parsedAlbums: UserSpotifyAlbum[] = JSON.parse(albums as string);
-    const rankedAlbums = parsedAlbums.map((album, i) => ({ ...album, rank: i }));
 
-    await saveUserAlbumsForYear(request, rankedAlbums);
-    return redirect(`/?year=${year}`);
+    try {
+        const parsedAlbums: UserSpotifyAlbum[] = JSON.parse(albums as string);
+        const rankedAlbums = parsedAlbums.map((album, i) => ({ ...album, rank: i }));
+
+        await saveUserAlbumsForYear(request, rankedAlbums);
+
+        return redirect(`/?year=${year}`);
+    } catch (error) {
+        return redirect(`/?year=${year}&error=1`); // TODO: Maybe use a custom header to convey error messages
+    }
 };
 
 export default function Index() {
-    const actionData = useActionData<ActionData>();
     const { data, columns, years } = useLoaderData<LoaderData>();
     const [orderedAlbums, setOrderedAlbums] = useState(data);
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedYear = getYearOrDefaultFromSearchParams(searchParams);
+    const error = getErrorFromSearchParams(searchParams);
 
     const handleYearChange = (e: ChangeEvent<HTMLSelectElement>) => {
         setSearchParams({ year: e.target.value });
@@ -82,17 +86,32 @@ export default function Index() {
     };
 
     return (
-        <>
-            <main className='main'>
-                <div className='select'>
-                    <select name='year' value={selectedYear} onChange={handleYearChange}>
-                        {years.map((y) => (
-                            <option key={y} value={y}>
-                                {y}
-                            </option>
-                        ))}
-                    </select>
+        <Form method='post'>
+            <main className='container'>
+                <div className='field is-grouped'>
+                    <div className='control'>
+                        <div className='select'>
+                            <select name='year' value={selectedYear} onChange={handleYearChange}>
+                                {years.map((y) => (
+                                    <option key={y} value={y}>
+                                        {y}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className='control'>
+                        {/* Hidden form input synced with state tracked in react */}
+                        <input
+                            hidden
+                            readOnly
+                            name='albums'
+                            value={JSON.stringify(orderedAlbums)}
+                        />
+                        <button className='button is-primary'>Save</button>
+                    </div>
                 </div>
+
                 {data.length === 0 ? (
                     <h3>You have no albums for this year</h3>
                 ) : (
@@ -103,22 +122,12 @@ export default function Index() {
                             data={data}
                             onChange={handleAlbumChange}
                         />
-                        <Form method='post'>
-                            <input
-                                hidden
-                                readOnly
-                                name='albums'
-                                value={JSON.stringify(orderedAlbums)}
-                            />
-                            <input hidden readOnly name='year' value={selectedYear} />
-                            <button className='button is-primary'>Save</button>
-                        </Form>
                     </>
                 )}
             </main>
             <footer className='footer'>
-                {actionData?.success && <div className='container'>Successfully Updated</div>}
+                {error && <div className='notification'>Something went wrong</div>}
             </footer>
-        </>
+        </Form>
     );
 }

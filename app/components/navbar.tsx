@@ -1,11 +1,9 @@
 import { Link } from 'remix';
-import { User } from '~/utils/sessions.server';
+import {useRootData} from "~/utils/useRootData";
 
-interface IProps {
-    user: User | null;
-}
+export default function NavBar() {
+    const { user } = useRootData()
 
-export default function NavBar({ user }: IProps) {
     return (
         <nav className='navbar' role='navigation'>
             <div className='navbar-brand'>

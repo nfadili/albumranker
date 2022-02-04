@@ -8,12 +8,19 @@ import {
     redirect,
     Scripts,
     ScrollRestoration,
-    useCatch
+    useCatch, useLoaderData
 } from 'remix';
 import type { MetaFunction } from 'remix';
+import NavBar from '~/components/navbar';
+import {getUser, User} from '~/utils/sessions.server';
 import globalStylesUrl from './styles/global.css';
 
-export let links: LinksFunction = () => {
+
+export const handle = {
+    id: 'root',
+}
+
+export const links: LinksFunction = () => {
     return [
         { rel: 'stylesheet', href: globalStylesUrl },
         {
@@ -27,9 +34,12 @@ export const meta: MetaFunction = () => {
     return { title: 'AlbumRanker', viewport: 'width=device-width,initial-scale=1' };
 };
 
-export let loader: LoaderFunction = ({ request }) => {
-    // upgrade people to https automatically
+export type LoaderData = {
+    user: User | null;
+};
 
+export const loader: LoaderFunction = async ({ request }) => {
+    // Upgrade people to https automatically
     let url = new URL(request.url);
     let hostname = url.hostname;
     let proto = request.headers.get('X-Forwarded-Proto') ?? url.protocol;
@@ -44,7 +54,13 @@ export let loader: LoaderFunction = ({ request }) => {
             }
         });
     }
-    return {};
+
+    // Get user
+    const user = await getUser(request);
+
+    return {
+        user
+    };
 };
 
 function Document({ children, title }: { children: React.ReactNode; title?: string }) {
@@ -70,8 +86,10 @@ function Document({ children, title }: { children: React.ReactNode; title?: stri
 }
 
 export default function App() {
+    const data = useLoaderData<LoaderData>()
     return (
         <Document title='Album Ranker'>
+            <NavBar />
             <Outlet />
         </Document>
     );

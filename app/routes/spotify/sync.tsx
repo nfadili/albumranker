@@ -1,4 +1,4 @@
-import { ActionFunction, Form, LoaderFunction, useTransition } from 'remix';
+import { ActionFunction, Form, Link, LoaderFunction, useTransition } from 'remix';
 import { redirect } from 'remix';
 import { syncAllAlbumsForUser } from '~/spotify/client.server';
 
@@ -15,10 +15,13 @@ export default function Sync() {
     }
 
     return (
-        <div>
-            <Form method='post'>
-                <button type='submit'>Sync Spotify Library</button>
-            </Form>
-        </div>
+        <main className='main'>
+            <div className='container'>
+                <p>To begin ranking your albums you must first sync your spotify library with this app.</p>
+                <Form method='post'>
+                    <button type='submit'>Sync Spotify Library</button>
+                </Form>
+            </div>
+        </main>
     );
 }

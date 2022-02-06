@@ -26,36 +26,23 @@ export default function Index() {
     const { user, spotifyEnabled } = useLoaderData<LoaderData>();
 
     return (
-        <div>
-            <header className='header'>{}</header>
-            <main className='main'>
-                <div className='container'>
-                    <div className='container'>
-                        <h1 className='home-link'>
-                            <Link to='/'>Home</Link>
-                        </h1>
-                        {user ? (
-                            <div className='user-info'>
-                                <span>{`Hi ${user.username}`}</span>
-                                {!spotifyEnabled && (
-                                    <Link to='/spotify/login'>Login to spotify</Link>
-                                )}
-                                <Form action='/auth/logout' method='post'>
-                                    <button type='submit' className='button'>
-                                        Logout
-                                    </button>
-                                </Form>
-                            </div>
-                        ) : (
-                            <Link to='/auth/login'>Login</Link>
-                        )}
+        <main className='main'>
+            <div className='container'>
+                {user ? (
+                    <div className='user-info'>
+                        <h1>{`Hi ${user.username}`}</h1>
                         {spotifyEnabled ? <a href='/spotify/sync'>Sync spotify albums</a> : null}
+                        {!spotifyEnabled && <Link to='/spotify/login'>Login to spotify</Link>}
+                        <Form action='/auth/logout' method='post'>
+                            <button type='submit' className='button'>
+                                Logout
+                            </button>
+                        </Form>
                     </div>
-                </div>
-            </main>
-            <footer className='footer'>
-                <div className='container'>FOOTER</div>
-            </footer>
-        </div>
+                ) : (
+                    <Link to='/auth/login'>Login</Link>
+                )}
+            </div>
+        </main>
     );
 }

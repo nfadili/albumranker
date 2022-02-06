@@ -15,18 +15,13 @@ import NavBar from '~/components/navbar';
 import {getUser, User} from '~/utils/sessions.server';
 import globalStylesUrl from './styles/global.css';
 
-
 export const handle = {
     id: 'root',
 }
 
 export const links: LinksFunction = () => {
     return [
-        { rel: 'stylesheet', href: globalStylesUrl },
-        {
-            rel: 'stylesheet',
-            href: 'https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css'
-        }
+        { rel: 'stylesheet', href: globalStylesUrl }
     ];
 };
 

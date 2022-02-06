@@ -7,5 +7,3 @@ node_modules
 .env
 
 /prisma/dev.db
-
-app/styles/global.css

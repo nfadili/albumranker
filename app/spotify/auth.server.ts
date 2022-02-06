@@ -1,8 +1,9 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import type _SpotifyClient from 'spotify-web-api-node';
-import { db } from '../utils/db.server';
-import logger from '../utils/logger.server';
-import { getUserId, logout } from '../utils/sessions.server';
+import { db } from '~/utils/db.server';
+import logger from '~/utils/logger.server';
+import { getUserId, logout } from '~/utils/sessions.server';
+import { Cipher, EncryptedData } from '~/utils/cipher';
 
 /********************************************************
  * Types
@@ -38,9 +39,13 @@ const EXPIRES_IN_MARGIN_MS = 5 * 60 * 1000; // 15min
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
+const signingSecret = process.env.SIGNING_SECRET;
 
 if (!clientId || !clientSecret || !redirectUri) {
     throw Error('Missing required SPOTIFY_* environment variables.');
+}
+if (!signingSecret) {
+    throw Error('Missing required SIGNING_SECRET environment variable.');
 }
 
 const spotifyServerClient = new SpotifyWebApi({
@@ -49,15 +54,27 @@ const spotifyServerClient = new SpotifyWebApi({
     redirectUri
 });
 
+const cipher = new Cipher(signingSecret);
+
 /********************************************************
  * Utils
  *********************************************************/
+const encryptToken = (token: string) => {
+    const encrypted = cipher.encrypt(token);
+    return JSON.stringify(encrypted);
+}
+
+const decryptToken = (encryptedString: string) => {
+    const encrypted: EncryptedData = JSON.parse(encryptedString);
+    return cipher.decrypt(encrypted);
+}
+
 const formatCredentials = ({
     access_token,
     refresh_token,
     expires_in
 }: ITokenResponse): SpotifyCredentials => {
-    // Calcuate an ISO8601 timestamp for when the access token will expire.
+    // Calculate an ISO8601 timestamp for when the access token will expire.
     const expiresInMs = expires_in * 1000 - EXPIRES_IN_MARGIN_MS;
     const expiresAt = new Date(Date.now() + expiresInMs).toISOString();
 
@@ -104,6 +121,9 @@ async function saveSpotifyCredentials(request: Request, credentials: SpotifyCred
         throw logout(request); // TODO: See if there is a better way
     }
 
+    const encryptedAccessToken = encryptToken(credentials.accessToken);
+    const encryptedRefreshToken = encryptToken(credentials.refreshToken as string);
+
     return db.user.update({
         where: {
             id: userId
@@ -111,8 +131,8 @@ async function saveSpotifyCredentials(request: Request, credentials: SpotifyCred
         data: {
             spotifyCredential: {
                 create: {
-                    accessToken: credentials.accessToken,
-                    refreshToken: credentials.refreshToken as string,
+                    accessToken: encryptedAccessToken,
+                    refreshToken: encryptedRefreshToken,
                     expiresAt: credentials.expiresAt
                 }
             }
@@ -131,6 +151,8 @@ async function updateSpotifyCredentials(request: Request, credentials: SpotifyCr
         return null;
     }
 
+    const encryptedAccessToken = encryptToken(credentials.accessToken);
+
     return db.user.update({
         where: {
             id: userId
@@ -138,7 +160,7 @@ async function updateSpotifyCredentials(request: Request, credentials: SpotifyCr
         data: {
             spotifyCredential: {
                 update: {
-                    accessToken: credentials.accessToken,
+                    accessToken: encryptedAccessToken,
                     expiresAt: credentials.expiresAt
                 }
             }
@@ -157,9 +179,12 @@ async function getUserSpotifyCredentials(request: Request): Promise<SpotifyCrede
         return null;
     }
 
+    const decryptedAccessToken = decryptToken(credentials.accessToken);
+    const decryptedRefreshToken = decryptToken(credentials.refreshToken);
+
     return {
-        accessToken: credentials.accessToken,
-        refreshToken: credentials.refreshToken ? credentials.refreshToken : null,
+        accessToken: decryptedAccessToken,
+        refreshToken: decryptedRefreshToken ? decryptedRefreshToken : null,
         expiresAt: credentials.expiresAt.toISOString()
     };
 }
@@ -198,12 +223,11 @@ export const getSpotifyClient = async (request: Request) => {
     const refreshedCredentials = await refreshCredentials(credentials);
     await updateSpotifyCredentials(request, refreshedCredentials);
 
-    // Return a spotofy client instance with valid credentials
-    const client = new SpotifyWebApi({
+    // Return a spotify client instance with valid credentials
+    return new SpotifyWebApi({
         accessToken: refreshedCredentials.accessToken,
         refreshToken: refreshedCredentials.refreshToken
             ? refreshedCredentials.refreshToken
             : undefined
     });
-    return client;
 };

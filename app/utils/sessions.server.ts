@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
-import { createCookieSessionStorage, redirect } from 'remix';
-import { db } from '~/utils/db.server';
+import {createCookieSessionStorage, redirect} from 'remix';
+import {db} from '~/utils/db.server';
 
-import type { User as _User } from '@prisma/client';
+import type {User as _User} from '@prisma/client';
 
 export type User = _User;
 
@@ -26,9 +26,9 @@ export async function login({ username, password }: LoginForm) {
     return user;
 }
 
-const sessionSecret = process.env.SESSION_SECRET;
+const sessionSecret = process.env.SIGNING_SECRET;
 if (!sessionSecret) {
-    throw new Error('SESSION_SECRET must be set');
+    throw new Error('SIGNING_SECRET must be set');
 }
 
 const { getSession, commitSession, destroySession } = createCookieSessionStorage({
@@ -66,10 +66,9 @@ export async function getUser(request: Request) {
     if (typeof userId !== 'string') return null;
 
     try {
-        const user = await db.user.findUnique({ where: { id: userId } });
-        return user;
+        return await db.user.findUnique({where: {id: userId}});
     } catch {
-        throw logout(request);
+        throw await logout(request);
     }
 }
 

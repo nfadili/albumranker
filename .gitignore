@@ -1,10 +1,10 @@
 node_modules
 
-/.cache
-/server/build
+/build
 /public/build
-
 .env
-.idea
 
-/prisma/dev.db
+/cypress/screenshots
+/cypress/videos
+/prisma/data.db
+/prisma/data.db-journal

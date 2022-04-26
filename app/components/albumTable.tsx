@@ -1,11 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-import { useTable, Column, Row } from 'react-table';
+import type { Column } from 'react-table';
+import { useTable, Row } from 'react-table';
 import debounce from 'lodash.debounce';
-
-import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd';
+import type { DropTargetMonitor } from 'react-dnd';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper';
-import { UserSpotifyAlbum } from '~/spotify/client.server';
+import { Table } from '@mantine/core';
+import type { UserSpotifyAlbum } from '~/spotify/client.server';
 
 const DND_ITEM_TYPE = 'row';
 
@@ -41,12 +43,9 @@ export function AlbumTable({ columns, data, onChange }: IProps) {
     };
 
     return (
-        <div className='table-container'>
+        <div>
             <DndProvider backend={HTML5Backend}>
-                <table
-                    {...getTableProps()}
-                    className='table is-bordered is-striped is-narrow is-hoverable is-fullwidth'
-                >
+                <Table {...getTableProps()}>
                     <thead>
                         {headerGroups.map((headerGroup) => (
                             <tr {...headerGroup.getHeaderGroupProps()}>
@@ -61,7 +60,7 @@ export function AlbumTable({ columns, data, onChange }: IProps) {
                         {rows.map((row, index) => {
                             prepareRow(row);
                             return (
-                                <Row
+                                <AlbumRow
                                     index={index}
                                     row={row}
                                     moveRow={moveRow}
@@ -70,13 +69,13 @@ export function AlbumTable({ columns, data, onChange }: IProps) {
                             );
                         })}
                     </tbody>
-                </table>
+                </Table>
             </DndProvider>
         </div>
     );
 }
 
-const Row = ({
+const AlbumRow = ({
     row,
     index,
     moveRow
@@ -148,7 +147,7 @@ const Row = ({
     return (
         <tr ref={dropRef} style={{ opacity }}>
             <td ref={dragRef}>
-                <i aria-hidden className='fas fa-grip-vertical'/>
+                <i aria-hidden />
             </td>
             {row.cells.map((cell) => {
                 return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;

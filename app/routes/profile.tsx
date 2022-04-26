@@ -1,6 +1,17 @@
-import { Form, Link, LoaderFunction, redirect, useLoaderData } from 'remix';
-import { User, getUser } from '~/utils/sessions.server';
+import type { LoaderFunction, MetaFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
+import { Link, useLoaderData } from '@remix-run/react';
+import { Container, Stack, Text } from '@mantine/core';
+import { getUser } from '~/session.server';
+import type { User } from '~/models/user.server';
 import { isSpotifyAccountLinked } from '~/spotify/client.server';
+import { LinkButton } from '~/components/LinkButton';
+
+export const meta: MetaFunction = () => {
+    return {
+        title: 'Profile'
+    };
+};
 
 type LoaderData = {
     user?: User | null;
@@ -26,23 +37,22 @@ export default function Index() {
     const { user, spotifyEnabled } = useLoaderData<LoaderData>();
 
     return (
-        <main className='main'>
-            <div className='container'>
+        <Container>
+            <Stack align='flex-start'>
                 {user ? (
-                    <div className='user-info'>
-                        <h1>{`Hi ${user.username}`}</h1>
-                        {spotifyEnabled ? <a href='/spotify/sync'>Sync spotify albums</a> : null}
-                        {!spotifyEnabled && <Link to='/spotify/login'>Login to spotify</Link>}
-                        <Form action='/auth/logout' method='post'>
-                            <button type='submit' className='button'>
-                                Logout
-                            </button>
-                        </Form>
-                    </div>
+                    <>
+                        <Text>{`Hi ${user.email}`}</Text>
+                        {spotifyEnabled && (
+                            <LinkButton to='/spotify/sync'>Sync spotify albums</LinkButton>
+                        )}
+                        {!spotifyEnabled && (
+                            <LinkButton to='/spotify/login'>Login to spotify</LinkButton>
+                        )}
+                    </>
                 ) : (
                     <Link to='/auth/login'>Login</Link>
                 )}
-            </div>
-        </main>
+            </Stack>
+        </Container>
     );
 }

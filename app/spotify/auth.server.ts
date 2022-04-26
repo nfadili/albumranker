@@ -1,9 +1,10 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import type _SpotifyClient from 'spotify-web-api-node';
-import { db } from '~/utils/db.server';
-import logger from '~/utils/logger.server';
-import { getUserId, logout } from '~/utils/sessions.server';
-import { Cipher, EncryptedData } from '~/utils/cipher';
+import { prisma } from '~/db.server';
+import logger from '~/logger.server';
+import { getUserId, logout } from '~/session.server';
+import type { EncryptedData } from '~/cipher';
+import { Cipher } from '~/cipher';
 
 /********************************************************
  * Types
@@ -62,12 +63,12 @@ const cipher = new Cipher(signingSecret);
 const encryptToken = (token: string) => {
     const encrypted = cipher.encrypt(token);
     return JSON.stringify(encrypted);
-}
+};
 
 const decryptToken = (encryptedString: string) => {
     const encrypted: EncryptedData = JSON.parse(encryptedString);
     return cipher.decrypt(encrypted);
-}
+};
 
 const formatCredentials = ({
     access_token,
@@ -124,7 +125,7 @@ async function saveSpotifyCredentials(request: Request, credentials: SpotifyCred
     const encryptedAccessToken = encryptToken(credentials.accessToken);
     const encryptedRefreshToken = encryptToken(credentials.refreshToken as string);
 
-    return db.user.update({
+    return prisma.user.update({
         where: {
             id: userId
         },
@@ -146,14 +147,14 @@ async function updateSpotifyCredentials(request: Request, credentials: SpotifyCr
         throw logout(request);
     }
 
-    const existingCredentials = db.userSpotifyCredential.findUnique({ where: { userId } });
+    const existingCredentials = prisma.userSpotifyCredential.findUnique({ where: { userId } });
     if (!existingCredentials) {
         return null;
     }
 
     const encryptedAccessToken = encryptToken(credentials.accessToken);
 
-    return db.user.update({
+    return prisma.user.update({
         where: {
             id: userId
         },
@@ -174,7 +175,7 @@ async function getUserSpotifyCredentials(request: Request): Promise<SpotifyCrede
         return null;
     }
 
-    const credentials = await db.userSpotifyCredential.findUnique({ where: { userId } });
+    const credentials = await prisma.userSpotifyCredential.findUnique({ where: { userId } });
     if (!credentials) {
         return null;
     }

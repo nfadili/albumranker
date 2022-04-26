@@ -1,5 +1,7 @@
-import { ActionFunction, Form, Link, LoaderFunction, useTransition } from 'remix';
-import { redirect } from 'remix';
+import { Form, useTransition } from '@remix-run/react';
+import type { ActionFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
+import { Button, Container, Stack, Text } from '@mantine/core';
 import { syncAllAlbumsForUser } from '~/spotify/client.server';
 
 export let action: ActionFunction = async ({ request }) => {
@@ -11,17 +13,20 @@ export default function Sync() {
     const transition = useTransition();
 
     if (transition.submission) {
-        return <p>Syncing...</p>;
+        return <Text>Syncing...</Text>;
     }
 
     return (
-        <main className='main'>
-            <div className='container'>
-                <p>To begin ranking your albums you must first sync your spotify library with this app.</p>
+        <Container>
+            <Stack align='flex-start'>
+                <Text>
+                    To begin ranking your albums you must first sync your spotify library with this
+                    app.
+                </Text>
                 <Form method='post'>
-                    <button type='submit'>Sync Spotify Library</button>
+                    <Button type='submit'>Sync Spotify Library</Button>
                 </Form>
-            </div>
-        </main>
+            </Stack>
+        </Container>
     );
 }

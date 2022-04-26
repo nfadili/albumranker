@@ -1,11 +1,11 @@
-import type { ActionFunction, LoaderFunction } from 'remix';
-import { redirect } from 'remix';
-import { logout } from '~/utils/sessions.server';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
+import { logout } from '~/session.server';
 
-export let action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request }) => {
     return logout(request);
 };
 
-export let loader: LoaderFunction = async () => {
+export const loader: LoaderFunction = async () => {
     return redirect('/');
 };

@@ -13,13 +13,13 @@ import {
     TextInput
 } from '@mantine/core';
 import { safeRedirect, validateEmail } from '~/utils';
-import { createUserSession, getUserId } from '~/session.server';
-import { verifyLogin } from '~/models/user.server';
+import { getUserId, createUserSession } from '~/session.server';
+import { createUser, getUserByEmail } from '~/models/user.server';
 import { LinkText } from '~/components/LinkText';
 
 export const meta: MetaFunction = () => {
     return {
-        title: 'Login'
+        title: 'Sign Up'
     };
 };
 
@@ -30,7 +30,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 interface ActionData {
-    errors?: {
+    errors: {
         email?: string;
         password?: string;
     };
@@ -41,7 +41,6 @@ export const action: ActionFunction = async ({ request }) => {
     const email = formData.get('email');
     const password = formData.get('password');
     const redirectTo = safeRedirect(formData.get('redirectTo'), '/');
-    const remember = formData.get('remember');
 
     if (!validateEmail(email)) {
         return json<ActionData>({ errors: { email: 'Email is invalid' } }, { status: 400 });
@@ -55,27 +54,28 @@ export const action: ActionFunction = async ({ request }) => {
         return json<ActionData>({ errors: { password: 'Password is too short' } }, { status: 400 });
     }
 
-    const user = await verifyLogin(email, password);
-
-    if (!user) {
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
         return json<ActionData>(
-            { errors: { email: 'Invalid email or password' } },
+            { errors: { email: 'A user already exists with this email' } },
             { status: 400 }
         );
     }
 
+    const user = await createUser(email, password);
+
     return createUserSession({
         request,
         userId: user.id,
-        remember: remember === 'on' ? true : false,
+        remember: false,
         redirectTo
     });
 };
 
-export default function LoginPage() {
+export default function Join() {
     const [searchParams] = useSearchParams();
-    const redirectTo = searchParams.get('redirectTo') || '/';
-    const actionData = useActionData();
+    const redirectTo = searchParams.get('redirectTo') ?? undefined;
+    const actionData = useActionData() as ActionData;
     const emailRef = React.useRef<HTMLInputElement>(null);
     const passwordRef = React.useRef<HTMLInputElement>(null);
 
@@ -113,15 +113,15 @@ export default function LoginPage() {
                     <div>
                         <Checkbox name='remember' label='Remember me' />
                         <Group>
-                            <Text> Don't have an account?</Text>
+                            <Text>Already have an account?</Text>
                             <LinkText
                                 color='violet'
                                 to={{
-                                    pathname: '/auth/join',
+                                    pathname: '/auth/login',
                                     search: searchParams.toString()
                                 }}
                             >
-                                Sign up
+                                Login
                             </LinkText>
                         </Group>
                     </div>

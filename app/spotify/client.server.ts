@@ -1,7 +1,7 @@
-import { redirect } from 'remix';
+import { redirect } from '@remix-run/node';
 import { getSpotifyClient } from '~/spotify/auth.server';
-import { db } from '~/utils/db.server';
-import { getUser } from '~/utils/sessions.server';
+import { prisma } from '~/db.server';
+import { getUser } from '~/session.server';
 import type { UserSpotifyAlbum as _UserSpotifyAlbum } from '@prisma/client';
 
 export type UserSpotifyAlbum = _UserSpotifyAlbum;
@@ -38,7 +38,7 @@ export async function getAllUserAlbumsByYear(request: Request, year: string) {
         throw redirect('/auth/login');
     }
 
-    return db.userSpotifyAlbum.findMany({
+    return prisma.userSpotifyAlbum.findMany({
         where: {
             userId: user.id,
             year
@@ -56,7 +56,7 @@ export async function getAllUserAlbumYears(request: Request) {
         throw redirect('/auth/login');
     }
 
-    const years = await db.userSpotifyAlbum.findMany({
+    const years = await prisma.userSpotifyAlbum.findMany({
         select: {
             year: true
         },
@@ -77,7 +77,7 @@ export async function saveUserAlbumsForYear(request: Request, albums: UserSpotif
     }
 
     for (const album of albums) {
-        await db.userSpotifyAlbum.update({
+        await prisma.userSpotifyAlbum.update({
             where: {
                 userId_spotifyId: {
                     userId: user.id,
@@ -103,7 +103,7 @@ export async function syncAllAlbumsForUser(request: Request) {
     // Attempt to create a record of each album. Ignore errors
     for (const { album } of albums) {
         try {
-            const a = await db.userSpotifyAlbum.create({
+            const a = await prisma.userSpotifyAlbum.create({
                 data: {
                     userId: user.id,
                     artist: album.artists.map((a) => a.name).join(', '),

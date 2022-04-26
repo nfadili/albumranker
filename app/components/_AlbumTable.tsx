@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import type { Column } from 'react-table';
-import { useTable, Row } from 'react-table';
+import type { Column , Row } from 'react-table';
+import { useTable } from 'react-table';
 import debounce from 'lodash.debounce';
 import type { DropTargetMonitor } from 'react-dnd';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';

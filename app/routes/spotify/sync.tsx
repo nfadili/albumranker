@@ -1,7 +1,7 @@
 import { Form, useTransition } from '@remix-run/react';
 import type { ActionFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
-import { Button, Container, Stack, Text } from '@mantine/core';
+import { Button, Container, Stack, Text, Loader } from '@mantine/core';
 import { syncAllAlbumsForUser } from '~/spotify/client.server';
 
 export let action: ActionFunction = async ({ request }) => {
@@ -13,7 +13,11 @@ export default function Sync() {
     const transition = useTransition();
 
     if (transition.submission) {
-        return <Text>Syncing...</Text>;
+        return (
+            <Container>
+                <Loader />
+            </Container>
+        );
     }
 
     return (

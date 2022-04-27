@@ -4,6 +4,7 @@ import { redirect } from '@remix-run/node';
 import type { Column } from 'react-table';
 import { useState } from 'react';
 import { Button, Container, Group, Select, Stack } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
 import type { UserSpotifyAlbum } from '~/spotify/client.server';
 import {
     getAllUserAlbumsByYear,
@@ -44,7 +45,17 @@ export const loader: LoaderFunction = async ({ request }) => {
         years.unshift(currentYear);
     }
 
-    const data = await getAllUserAlbumsByYear(request, year);
+    const albums = await getAllUserAlbumsByYear(request, year);
+    const data = albums.map((a) => ({
+        ...a,
+        releaseDate:
+            a.releaseDate.getMonth() +
+            1 +
+            '/' +
+            a.releaseDate.getDate() +
+            '/' +
+            a.releaseDate.getFullYear()
+    }));
     const columns = [
         { Header: 'Name', accessor: 'name' },
         { Header: 'Artist', accessor: 'artist' },
@@ -64,9 +75,9 @@ export const action: ActionFunction = async ({ request }) => {
 
         await saveUserAlbumsForYear(request, rankedAlbums);
 
-        return redirect(`/?year=${year}`);
+        return redirect(`/ranker?year=${year}`);
     } catch (error) {
-        return redirect(`/?year=${year}&error=1`); // TODO: Maybe use a custom header to convey error messages
+        return redirect(`/ranker?year=${year}&error=1`); // TODO: Maybe use a custom header to convey error messages
     }
 };
 
@@ -96,7 +107,17 @@ export default function Ranker() {
                             onChange={handleYearChange}
                             data={years}
                         />
-                        <Button type='submit'>Save</Button>
+                        <Button
+                            onClick={() =>
+                                showNotification({
+                                    title: 'Changes saved',
+                                    message: 'Your new albums ranking has been saved'
+                                })
+                            }
+                            type='submit'
+                        >
+                            Save
+                        </Button>
                     </Group>
                     {data.length === 0 ? (
                         <h3>You have no albums for this year</h3>

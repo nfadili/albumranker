@@ -24,5 +24,5 @@ export let loader: LoaderFunction = async ({ request }) => {
 
     await completeSpotifyAuthorization(request, code);
 
-    return redirect('/');
+    return redirect('/spotify/sync');
 };

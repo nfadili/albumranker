@@ -2,6 +2,7 @@ import type { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/nod
 import { json } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { AppShell } from '@mantine/core';
+import { NotificationsProvider } from '@mantine/notifications';
 import { Header } from '~/components/Header';
 import { getUser } from './session.server';
 
@@ -33,9 +34,12 @@ export default function Document() {
                 <Links />
             </head>
             <body>
-                <AppShell padding='md' header={<Header />}>
-                    <Outlet />
-                </AppShell>
+                <NotificationsProvider>
+                    <AppShell padding='md' header={<Header />}>
+                        <Outlet />
+                    </AppShell>
+                </NotificationsProvider>
+
                 <ScrollRestoration />
                 <Scripts />
                 <LiveReload />

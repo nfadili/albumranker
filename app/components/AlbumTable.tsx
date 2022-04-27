@@ -1,12 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-import type { Column , Row } from 'react-table';
+import type { Column, Row } from 'react-table';
 import { useTable } from 'react-table';
 import debounce from 'lodash.debounce';
 import type { DropTargetMonitor } from 'react-dnd';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper';
-import { Table } from '@mantine/core';
+import { Table, ThemeIcon } from '@mantine/core';
+import { GridDots, GripVertical } from 'tabler-icons-react';
 import type { UserSpotifyAlbum } from '~/spotify/client.server';
 
 const DND_ITEM_TYPE = 'row';
@@ -147,7 +148,9 @@ const AlbumRow = ({
     return (
         <tr ref={dropRef} style={{ opacity }}>
             <td ref={dragRef}>
-                <i aria-hidden />
+                <ThemeIcon size='xs' color='violet' variant='filled' mt={8}>
+                    <GripVertical />
+                </ThemeIcon>
             </td>
             {row.cells.map((cell) => {
                 return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;

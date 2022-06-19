@@ -1,10 +1,11 @@
 import type { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
-import { AppShell } from '@mantine/core';
+import { AppShell, MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import { Header } from '~/components/Header';
 import { getUser } from './session.server';
+import { theme } from './theme';
 
 export const links: LinksFunction = () => {
     return [];
@@ -34,11 +35,13 @@ export default function Document() {
                 <Links />
             </head>
             <body>
-                <NotificationsProvider>
-                    <AppShell padding='md' header={<Header />}>
-                        <Outlet />
-                    </AppShell>
-                </NotificationsProvider>
+                <MantineProvider theme={theme}>
+                    <NotificationsProvider>
+                        <AppShell padding='md' header={<Header />}>
+                            <Outlet />
+                        </AppShell>
+                    </NotificationsProvider>
+                </MantineProvider>
 
                 <ScrollRestoration />
                 <Scripts />

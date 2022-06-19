@@ -25,7 +25,12 @@ export const Header = () => {
                             </Form>
                         </>
                     ) : (
-                        <LinkButton to='/auth/login'>Login</LinkButton>
+                        <>
+                            <LinkButton to='/auth/login'>Login</LinkButton>
+                            <LinkButton variant='light' to='/auth/join'>
+                                Sign Up
+                            </LinkButton>
+                        </>
                     )}
                 </Group>
             </Group>

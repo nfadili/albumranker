@@ -109,7 +109,7 @@ export default function Join() {
                         required
                     />
                     <input type='hidden' name='redirectTo' value={redirectTo} />
-                    <Button type='submit'>Log in</Button>
+                    <Button type='submit'>Sign Up</Button>
                     <div>
                         <Checkbox name='remember' label='Remember me' />
                         <Group>

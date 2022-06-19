@@ -8,7 +8,27 @@ import { getUser } from './session.server';
 import { theme } from './theme';
 
 export const links: LinksFunction = () => {
-    return [];
+    return [
+        {
+            href: '/site.webmanifest',
+            rel: 'manifest'
+        },
+        {
+            href: '/favicon-16x16.png',
+            rel: 'icon',
+            sizes: '16x16'
+        },
+        {
+            href: '/favicon-32x32.png',
+            rel: 'icon',
+            sizes: '32x32'
+        },
+        {
+            href: '/apple-touch-icon.png',
+            rel: 'apple-touch-icon',
+            sizes: '180x180'
+        }
+    ];
 };
 
 export const meta: MetaFunction = () => ({

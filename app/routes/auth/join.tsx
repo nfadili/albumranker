@@ -115,7 +115,6 @@ export default function Join() {
                         <Group>
                             <Text>Already have an account?</Text>
                             <LinkText
-                                color='violet'
                                 to={{
                                     pathname: '/auth/login',
                                     search: searchParams.toString()

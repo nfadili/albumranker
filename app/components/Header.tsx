@@ -12,16 +12,20 @@ export const Header = () => {
         <MHeader height={60} p='xs'>
             <Group position='apart'>
                 <Group>
-                    <LinkText to='/'>AlbumRanker</LinkText>
+                    <LinkText size='lg' weight='bold' to='/'>
+                        AlbumRanker
+                    </LinkText>
                 </Group>
                 <Group>
                     {user ? (
                         <>
-                            <LinkText to='/profile' color='blue'>
+                            <LinkButton variant='light' to='/profile'>
                                 Profile
-                            </LinkText>
+                            </LinkButton>
                             <Form action='/auth/logout' method='post'>
-                                <Button type='submit'>Logout</Button>
+                                <Button variant='outline' type='submit'>
+                                    Logout
+                                </Button>
                             </Form>
                         </>
                     ) : (

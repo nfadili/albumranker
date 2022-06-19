@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Table, createStyles, Button, ActionIcon } from '@mantine/core';
-import { Copy } from 'tabler-icons-react';
 import {
     resetServerContext,
     DragDropContext,
@@ -32,7 +31,6 @@ interface IProps {
 }
 
 export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => {
-    const tableRef = useRef<HTMLElement | null | undefined>();
     const [albums, setAlbums] = useState(data);
 
     const onDragEnd = useCallback(
@@ -57,33 +55,6 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
         [setAlbums, albums]
     );
 
-    const copyTableToClipboard = () => {
-        console.log(tableRef.current);
-        const ref: HTMLElement | null | undefined = tableRef.current;
-        if (!ref) {
-            return;
-        }
-
-        const range: Range = document.createRange();
-        range.selectNode(ref);
-        window.getSelection()?.addRange(range);
-
-        try {
-            document.execCommand('copy');
-            console.log('copied');
-        } catch (error) {
-            console.error(error);
-        } finally {
-            window.getSelection()?.removeAllRanges();
-        }
-    };
-
-    const handleCopyTableClick = () => {
-        // TODO: Fix this hack - Calling the copy handler twice because once doesn't work....
-        copyTableToClipboard();
-        copyTableToClipboard();
-    };
-
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <Table sx={{ tableLayout: 'auto' }}>
@@ -92,18 +63,12 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
                         <th>Name</th>
                         <th>Artist</th>
                         <th>Release Date</th>
-                        <th>
-                            <ActionIcon title='Copy' onClick={handleCopyTableClick}>
-                                <Copy />
-                            </ActionIcon>
-                        </th>
                     </tr>
                 </thead>
                 <Droppable droppableId='table'>
                     {(droppableProvided: DroppableProvided) => (
                         <tbody
                             ref={(ref: HTMLElement | null | undefined) => {
-                                tableRef.current = ref;
                                 droppableProvided.innerRef(ref as HTMLElement);
                             }}
                             {...droppableProvided.droppableProps}
@@ -156,7 +121,6 @@ function AlbumRow({
             <td className={classes.cell}>{album.name}</td>
             <td className={classes.cell}>{album.artist}</td>
             <td className={classes.cell}>{album.releaseDate}</td>
-            <td className={classes.cell}></td>
         </tr>
     );
 }

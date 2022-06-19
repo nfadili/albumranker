@@ -2,7 +2,7 @@ import { Form, useLoaderData, useSearchParams } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { useState } from 'react';
-import { Button, Container, Group, Select, Stack } from '@mantine/core';
+import { Button, Container, Group, Select, Stack, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import type { UserSpotifyAlbum } from '~/spotify/client.server';
 import {
@@ -90,6 +90,23 @@ export default function Ranker() {
         setOrderedAlbums(albums);
     };
 
+    const handleShareClick = () => {
+        const content = orderedAlbums.map((a, i) => `${i + 1}. ${a.name}`).join('\n');
+        navigator?.clipboard?.writeText(content);
+
+        showNotification({
+            title: 'List copied',
+            message: 'Your album list has been copied to the clipboard'
+        });
+    };
+
+    const handleSaveClick = () => {
+        showNotification({
+            title: 'Changes saved',
+            message: 'Your new albums ranking has been saved'
+        });
+    };
+
     return (
         <Form method='post'>
             <Container>
@@ -101,20 +118,15 @@ export default function Ranker() {
                             onChange={handleYearChange}
                             data={years}
                         />
-                        <Button
-                            onClick={() =>
-                                showNotification({
-                                    title: 'Changes saved',
-                                    message: 'Your new albums ranking has been saved'
-                                })
-                            }
-                            type='submit'
-                        >
+                        <Button onClick={handleSaveClick} type='submit'>
                             Save
+                        </Button>
+                        <Button variant='light' onClick={handleShareClick} type='submit'>
+                            Share
                         </Button>
                     </Group>
                     {data.length === 0 ? (
-                        <h3>You have no albums for this year</h3>
+                        <Text>You have no albums for this year</Text>
                     ) : (
                         <>
                             <AlbumTable
@@ -128,7 +140,7 @@ export default function Ranker() {
             </Container>
             {/* Hidden form input synced with state tracked in react */}
             <input hidden readOnly name='albums' value={JSON.stringify(orderedAlbums)} />
-            <footer>{error && <div>Something went wrong</div>}</footer>
+            <footer>{error && <Text>Something went wrong</Text>}</footer>
         </Form>
     );
 }

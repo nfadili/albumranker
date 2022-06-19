@@ -1,5 +1,5 @@
 import { Container, Stack, Text } from '@mantine/core';
-import { LinkText } from '~/components/LinkText';
+import { LinkButton } from '~/components/LinkButton';
 import { useOptionalUser } from '~/utils';
 
 export default function Index() {
@@ -8,9 +8,7 @@ export default function Index() {
         <Container>
             <Stack align='flex-start'>
                 <Text size='lg'>Hello {user?.email ?? 'World'}!</Text>
-                <LinkText to='/ranker' color='blue'>
-                    Rank your albums
-                </LinkText>
+                <LinkButton to='/ranker'>Rank your albums</LinkButton>
             </Stack>
         </Container>
     );

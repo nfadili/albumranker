@@ -115,7 +115,6 @@ export default function LoginPage() {
                         <Group>
                             <Text> Don't have an account?</Text>
                             <LinkText
-                                color='violet'
                                 to={{
                                     pathname: '/auth/join',
                                     search: searchParams.toString()

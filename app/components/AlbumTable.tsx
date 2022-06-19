@@ -1,160 +1,169 @@
-import { useCallback, useRef, useState } from 'react';
-import type { Column, Row } from 'react-table';
-import { useTable } from 'react-table';
-import debounce from 'lodash.debounce';
-import type { DropTargetMonitor } from 'react-dnd';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import update from 'immutability-helper';
-import { Table, ThemeIcon } from '@mantine/core';
-import { GridDots, GripVertical } from 'tabler-icons-react';
+import { useCallback, useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { Table, createStyles, Button, ActionIcon } from '@mantine/core';
+import { Copy } from 'tabler-icons-react';
+import {
+    resetServerContext,
+    DragDropContext,
+    Droppable,
+    Draggable,
+    DropResult,
+    DroppableProvided,
+    DraggableProvided,
+    DraggableStateSnapshot
+} from 'react-beautiful-dnd';
 import type { UserSpotifyAlbum } from '~/spotify/client.server';
 
-const DND_ITEM_TYPE = 'row';
+// Must be called if using SSR
+resetServerContext();
+
+const useStyles = createStyles((theme) => ({
+    cell: {
+        width: '50%'
+    },
+    dragging: {
+        display: 'table',
+        background: theme.colors.gray[0]
+    }
+}));
 
 interface IProps {
-    columns: readonly Column[];
     data: UserSpotifyAlbum[];
     onChange: (albums: UserSpotifyAlbum[]) => void;
 }
 
-export function AlbumTable({ columns, data, onChange }: IProps) {
-    const [records, setRecords] = useState(data);
+export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => {
+    const tableRef = useRef<HTMLElement | null | undefined>();
+    const [albums, setAlbums] = useState(data);
 
-    const getRowId = useCallback((row) => {
-        return row.spotifyId;
-    }, []);
+    const onDragEnd = useCallback(
+        (result: DropResult) => {
+            // Dropped outside the list
+            if (!result.destination || result.destination.index === result.source.index) {
+                return;
+            }
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
-        data: records as {}[],
-        columns,
-        getRowId
-    });
+            // No movement
+            if (result.destination.index === result.source.index) {
+                return;
+            }
 
-    const moveRow = (dragIndex: number, hoverIndex: number) => {
-        const dragRecord = records[dragIndex];
-        const updatedRecords = update(records, {
-            $splice: [
-                [dragIndex, 1],
-                [hoverIndex, 0, dragRecord]
-            ]
-        });
-        setRecords(updatedRecords);
-        onChange(updatedRecords);
+            // Save order in local state
+            const items = reorder(albums, result.source.index, result.destination.index);
+            setAlbums(items);
+
+            // Notify parent
+            onChange(items);
+        },
+        [setAlbums, albums]
+    );
+
+    const copyTableToClipboard = () => {
+        console.log(tableRef.current);
+        const ref: HTMLElement | null | undefined = tableRef.current;
+        if (!ref) {
+            return;
+        }
+
+        const range: Range = document.createRange();
+        range.selectNode(ref);
+        window.getSelection()?.addRange(range);
+
+        try {
+            document.execCommand('copy');
+            console.log('copied');
+        } catch (error) {
+            console.error(error);
+        } finally {
+            window.getSelection()?.removeAllRanges();
+        }
+    };
+
+    const handleCopyTableClick = () => {
+        // TODO: Fix this hack - Calling the copy handler twice because once doesn't work....
+        copyTableToClipboard();
+        copyTableToClipboard();
     };
 
     return (
-        <div>
-            <DndProvider backend={HTML5Backend}>
-                <Table {...getTableProps()}>
-                    <thead>
-                        {headerGroups.map((headerGroup) => (
-                            <tr {...headerGroup.getHeaderGroupProps()}>
-                                <th></th>
-                                {headerGroup.headers.map((column) => (
-                                    <th {...column.getHeaderProps()}>{column.render('Header')}</th>
-                                ))}
-                            </tr>
-                        ))}
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                        {rows.map((row, index) => {
-                            prepareRow(row);
-                            return (
-                                <AlbumRow
+        <DragDropContext onDragEnd={onDragEnd}>
+            <Table sx={{ tableLayout: 'auto' }}>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Artist</th>
+                        <th>Release Date</th>
+                        <th>
+                            <ActionIcon title='Copy' onClick={handleCopyTableClick}>
+                                <Copy />
+                            </ActionIcon>
+                        </th>
+                    </tr>
+                </thead>
+                <Droppable droppableId='table'>
+                    {(droppableProvided: DroppableProvided) => (
+                        <tbody
+                            ref={(ref: HTMLElement | null | undefined) => {
+                                tableRef.current = ref;
+                                droppableProvided.innerRef(ref as HTMLElement);
+                            }}
+                            {...droppableProvided.droppableProps}
+                        >
+                            {albums.map((record, index: number) => (
+                                <Draggable
+                                    draggableId={record.spotifyId}
                                     index={index}
-                                    row={row}
-                                    moveRow={moveRow}
-                                    {...row.getRowProps()}
-                                />
-                            );
-                        })}
-                    </tbody>
-                </Table>
-            </DndProvider>
-        </div>
+                                    key={record.spotifyId}
+                                >
+                                    {(
+                                        provided: DraggableProvided,
+                                        snapshot: DraggableStateSnapshot
+                                    ) => (
+                                        <AlbumRow
+                                            provided={provided}
+                                            snapshot={snapshot}
+                                            album={record}
+                                        />
+                                    )}
+                                </Draggable>
+                            ))}
+                            {droppableProvided.placeholder}
+                        </tbody>
+                    )}
+                </Droppable>
+            </Table>
+        </DragDropContext>
+    );
+});
+
+function AlbumRow({
+    snapshot,
+    album,
+    provided
+}: {
+    album: UserSpotifyAlbum;
+    provided: DraggableProvided;
+    snapshot: DraggableStateSnapshot;
+}) {
+    const { classes } = useStyles();
+
+    return (
+        <tr
+            className={snapshot.isDragging ? classes.dragging : undefined}
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+        >
+            <td className={classes.cell}>{album.name}</td>
+            <td className={classes.cell}>{album.artist}</td>
+            <td className={classes.cell}>{album.releaseDate}</td>
+            <td className={classes.cell}></td>
+        </tr>
     );
 }
 
-const AlbumRow = ({
-    row,
-    index,
-    moveRow
-}: {
-    row: Row;
-    index: number;
-    moveRow: (dragIndex: number, hoverIndex: number) => void;
-}) => {
-    const dropRef = useRef<HTMLTableRowElement>(null);
-    const dragRef = useRef<HTMLTableDataCellElement>(null);
-
-    const [, drop] = useDrop({
-        accept: DND_ITEM_TYPE,
-        hover: debounce((item: Row, monitor: DropTargetMonitor) => {
-            if (!dropRef.current) {
-                return;
-            }
-            const dragIndex = item.index;
-            const hoverIndex = index;
-            // Don't replace items with themselves
-            if (dragIndex === hoverIndex) {
-                return;
-            }
-            // Determine rectangle on screen
-            const hoverBoundingRect = dropRef.current.getBoundingClientRect();
-            // Get vertical middle
-            const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-            // Determine mouse position
-            const clientOffset = monitor.getClientOffset();
-            if (clientOffset === null) {
-                return;
-            }
-            // Get pixels to the top
-            const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-            // Only perform the move when the mouse has crossed half of the items height
-            // When dragging downwards, only move when the cursor is below 50%
-            // When dragging upwards, only move when the cursor is above 50%
-            // Dragging downwards
-            if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-                return;
-            }
-            // Dragging upwards
-            if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-                return;
-            }
-            // Time to actually perform the action
-            moveRow(dragIndex, hoverIndex);
-            // Note: we're mutating the monitor item here!
-            // Generally it's better to avoid mutations,
-            // but it's good here for the sake of performance
-            // to avoid expensive index searches.
-            item.index = hoverIndex;
-        }, 1) // TODO: Might need to mess with this a bit more to fine tune it
-    });
-
-    const [{ isDragging }, drag, preview] = useDrag({
-        type: DND_ITEM_TYPE,
-        item: { type: DND_ITEM_TYPE, index },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging()
-        })
-    });
-
-    const opacity = isDragging ? 0 : 1;
-
-    preview(drop(dropRef));
-    drag(dragRef);
-
-    return (
-        <tr ref={dropRef} style={{ opacity }}>
-            <td ref={dragRef}>
-                <ThemeIcon size='xs' color='violet' variant='filled' mt={8}>
-                    <GripVertical />
-                </ThemeIcon>
-            </td>
-            {row.cells.map((cell) => {
-                return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;
-            })}
-        </tr>
-    );
-};
+function reorder(list: UserSpotifyAlbum[], startIndex: number, endIndex: number) {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+}

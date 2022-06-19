@@ -1,7 +1,6 @@
 import { Form, useLoaderData, useSearchParams } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
-import type { Column } from 'react-table';
 import { useState } from 'react';
 import { Button, Container, Group, Select, Stack } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
@@ -29,7 +28,6 @@ function getErrorFromSearchParams(searchParams: URLSearchParams) {
 
 type LoaderData = {
     data: UserSpotifyAlbum[];
-    columns: Column[];
     years: string[];
 };
 
@@ -56,12 +54,8 @@ export const loader: LoaderFunction = async ({ request }) => {
             '/' +
             a.releaseDate.getFullYear()
     }));
-    const columns = [
-        { Header: 'Name', accessor: 'name' },
-        { Header: 'Artist', accessor: 'artist' },
-        { Header: 'Release Date', accessor: 'releaseDate' }
-    ];
-    return { data, columns, years };
+
+    return { data, years };
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -82,7 +76,7 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Ranker() {
-    const { data, columns, years } = useLoaderData<LoaderData>();
+    const { data, years } = useLoaderData<LoaderData>();
     const [orderedAlbums, setOrderedAlbums] = useState(data);
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedYear = getYearOrDefaultFromSearchParams(searchParams);
@@ -125,7 +119,6 @@ export default function Ranker() {
                         <>
                             <AlbumTable
                                 key={selectedYear}
-                                columns={columns}
                                 data={data}
                                 onChange={handleAlbumChange}
                             />

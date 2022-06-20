@@ -1,16 +1,21 @@
-import { Form, useLoaderData, useSearchParams } from '@remix-run/react';
+import { Form, useLoaderData, useSearchParams, useTransition } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { useState } from 'react';
-import { Button, Container, Group, Select, Stack, Text } from '@mantine/core';
+import { Button, Container, Group, Loader, Select, Stack, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
-import type { UserSpotifyAlbum } from '~/spotify/client.server';
+import {
+    isSpotifyAccountLinked,
+    syncAllAlbumsForUser,
+    UserSpotifyAlbum
+} from '~/spotify/client.server';
 import {
     getAllUserAlbumsByYear,
     getAllUserAlbumYears,
     saveUserAlbumsForYear
 } from '~/spotify/client.server';
 import { AlbumTable } from '~/components/AlbumTable';
+import { LinkText } from '~/components/LinkText';
 
 export const meta: MetaFunction = () => {
     return {
@@ -29,15 +34,17 @@ function getErrorFromSearchParams(searchParams: URLSearchParams) {
 type LoaderData = {
     data: UserSpotifyAlbum[];
     years: string[];
+    spotifyDisabled: boolean;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
     const url = new URL(request.url);
     const year = getYearOrDefaultFromSearchParams(url.searchParams);
 
+    const spotifyDisabled = !(await isSpotifyAccountLinked(request));
     const years = await getAllUserAlbumYears(request);
 
-    // If the use has not albums from the current year, add the current year as an option
+    // If the use has no albums from the current year, add the current year as an option
     const currentYear = new Date().getFullYear().toString();
     if (!years.includes(currentYear)) {
         years.unshift(currentYear);
@@ -56,13 +63,19 @@ export const loader: LoaderFunction = async ({ request }) => {
             a.releaseDate.getFullYear()
     }));
 
-    return { data, years };
+    return { data, years, spotifyDisabled };
 };
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData();
     const year = form.get('year');
     const albums = form.get('albums');
+    const intent = form.get('intent');
+
+    if (intent === 'sync') {
+        await syncAllAlbumsForUser(request);
+        return redirect(`/ranker?year=${year}`);
+    }
 
     try {
         const parsedAlbums: UserSpotifyAlbum[] = JSON.parse(albums as string);
@@ -77,7 +90,8 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Ranker() {
-    const { data, years } = useLoaderData<LoaderData>();
+    const transition = useTransition();
+    const { data, years, spotifyDisabled } = useLoaderData<LoaderData>();
     const [orderedAlbums, setOrderedAlbums] = useState(data);
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedYear = getYearOrDefaultFromSearchParams(searchParams);
@@ -111,6 +125,15 @@ export default function Ranker() {
         });
     };
 
+    const isSyncing = transition.submission?.formData.get('intent') === 'sync';
+    if (isSyncing) {
+        return (
+            <Container>
+                <Loader />
+            </Container>
+        );
+    }
+
     return (
         <Form method='post'>
             <Container>
@@ -122,15 +145,51 @@ export default function Ranker() {
                             onChange={handleYearChange}
                             data={years}
                         />
-                        <Button onClick={handleSaveClick} type='submit'>
+                        <Button
+                            onClick={handleSaveClick}
+                            type='submit'
+                            name='intent'
+                            value='save'
+                            disabled={spotifyDisabled}
+                        >
                             Save
                         </Button>
-                        <Button variant='light' onClick={handleShareClick} type='button'>
+                        <Button
+                            variant='light'
+                            type='submit'
+                            name='intent'
+                            value='sync'
+                            disabled={spotifyDisabled}
+                        >
+                            Sync
+                        </Button>
+                        <Button
+                            variant='light'
+                            onClick={handleShareClick}
+                            type='button'
+                            disabled={spotifyDisabled}
+                        >
                             Share
                         </Button>
                     </Group>
                     {data.length === 0 ? (
-                        <Text>You have no albums for this year</Text>
+                        <>
+                            {spotifyDisabled ? (
+                                <Text>
+                                    To begin ranking albums, you must first link your spotify
+                                    account from the{' '}
+                                    <LinkText color='anchor' to='/profile'>
+                                        profile page
+                                    </LinkText>
+                                    .
+                                </Text>
+                            ) : (
+                                <Text>
+                                    You have no albums for this year. You might need to sync your
+                                    library!
+                                </Text>
+                            )}
+                        </>
                     ) : (
                         <>
                             <AlbumTable

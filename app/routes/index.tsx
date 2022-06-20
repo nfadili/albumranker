@@ -7,7 +7,11 @@ export default function Index() {
     return (
         <Container>
             <Stack align='flex-start'>
-                <Text size='lg'>Hello {user?.email ?? 'World'}!</Text>
+                <Text size='lg'>Welcome to AlbumRanker!</Text>
+                <Text>
+                    This app let's you sync your spotify library and rank the albums into lists
+                    grouped by year.
+                </Text>
                 <LinkButton to='/ranker'>Rank your albums</LinkButton>
             </Stack>
         </Container>

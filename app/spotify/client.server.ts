@@ -60,6 +60,9 @@ export async function getAllUserAlbumYears(request: Request) {
         select: {
             year: true
         },
+        where: {
+            userId: user.id
+        },
         orderBy: {
             year: 'desc'
         },

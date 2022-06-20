@@ -50,7 +50,7 @@ model UserSpotifyAlbum {
   rank        Int?
   spotifyId   String
   images      String   @default("[]")
-  uri         String?
+  uri         String? // NOTE: Only optional because it was added later
 
   isHidden Boolean @default(false)
 

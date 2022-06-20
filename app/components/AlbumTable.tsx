@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, forwardRef, useMemo } from 'react';
-import { Table, createStyles, Checkbox } from '@mantine/core';
+import { Table, createStyles, Checkbox, Anchor, Text } from '@mantine/core';
 import {
     resetServerContext,
     DragDropContext,
@@ -18,6 +18,9 @@ import { findLastIndex } from '~/utils';
 resetServerContext();
 
 const useStyles = createStyles((theme) => ({
+    table: {
+        tableLayout: 'auto'
+    },
     cell: {
         boxSizing: 'border-box'
     },
@@ -42,6 +45,7 @@ interface IProps {
 }
 
 export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => {
+    const { classes } = useStyles();
     const [albums, setAlbums] = useState(data);
 
     // Whenever table state changes, update the parent
@@ -82,14 +86,28 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Table sx={{ tableLayout: 'auto' }}>
+            <Table
+                className={classes.table}
+                verticalSpacing='xs'
+                horizontalSpacing='xs'
+                fontSize='xs'
+                captionSide='bottom'
+            >
                 <thead>
                     <tr>
                         <th></th>
-                        <th>Name</th>
-                        <th>Artist</th>
-                        <th>Release Date</th>
-                        <th>Hide</th>
+                        <th>
+                            <Text>Name</Text>
+                        </th>
+                        <th>
+                            <Text>Artist</Text>
+                        </th>
+                        <th>
+                            <Text>Release Date</Text>
+                        </th>
+                        <th>
+                            <Text>Hide</Text>
+                        </th>
                     </tr>
                 </thead>
                 <Droppable droppableId='table'>
@@ -163,9 +181,15 @@ function AlbumRow({
             <td>
                 <img height={image?.height} width={image?.width} src={image?.url} />
             </td>
-            <td className={cellClasses}>{album.name}</td>
-            <td className={cellClasses}>{album.artist}</td>
-            <td className={cellClasses}>{album.releaseDate}</td>
+            <td className={cellClasses}>
+                <Anchor href={album.uri ?? '#'}>{album.name}</Anchor>
+            </td>
+            <td className={cellClasses}>
+                <Text>{album.artist}</Text>
+            </td>
+            <td className={cellClasses}>
+                <Text>{album.releaseDate}</Text>
+            </td>
             <td className={cellClasses}>
                 <Checkbox
                     checked={album.isHidden}

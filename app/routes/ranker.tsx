@@ -44,6 +44,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
 
     const albums = await getAllUserAlbumsByYear(request, year);
+
     const data = albums.map((a) => ({
         ...a,
         releaseDate:

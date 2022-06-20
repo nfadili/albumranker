@@ -112,17 +112,28 @@ export async function syncAllAlbumsForUser(request: Request) {
                     }
                 },
                 create: {
+                    // Unique
                     userId: user.id,
+                    spotifyId: album.id,
+
+                    // May update
                     artist: album.artists.map((a) => a.name).join(', '),
                     name: album.name,
                     releaseDate: new Date(album.release_date),
                     year: new Date(album.release_date).getFullYear().toString(),
-                    rank: null,
-                    spotifyId: album.id,
-                    images: JSON.stringify(album.images)
+                    images: JSON.stringify(album.images),
+                    uri: album.uri,
+
+                    // Set by this app
+                    rank: null
                 },
                 update: {
-                    images: JSON.stringify(album.images)
+                    artist: album.artists.map((a) => a.name).join(', '),
+                    name: album.name,
+                    releaseDate: new Date(album.release_date),
+                    year: new Date(album.release_date).getFullYear().toString(),
+                    images: JSON.stringify(album.images),
+                    uri: album.uri
                 }
             });
             console.log('success syncing album', album.name);

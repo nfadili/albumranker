@@ -104,20 +104,30 @@ export async function syncAllAlbumsForUser(request: Request) {
     // Attempt to create a record of each album. Ignore errors
     for (const { album } of albums) {
         try {
-            const a = await prisma.userSpotifyAlbum.create({
-                data: {
+            await prisma.userSpotifyAlbum.upsert({
+                where: {
+                    userId_spotifyId: {
+                        userId: user.id,
+                        spotifyId: album.id
+                    }
+                },
+                create: {
                     userId: user.id,
                     artist: album.artists.map((a) => a.name).join(', '),
                     name: album.name,
                     releaseDate: new Date(album.release_date),
                     year: new Date(album.release_date).getFullYear().toString(),
                     rank: null,
-                    spotifyId: album.id
+                    spotifyId: album.id,
+                    images: JSON.stringify(album.images)
+                },
+                update: {
+                    images: JSON.stringify(album.images)
                 }
             });
-            console.log('success creating album', a.name);
+            console.log('success syncing album', album.name);
         } catch (error) {
-            console.log('error creating album', album.name);
+            console.log('error creating album', album.name, (error as Error).message);
         }
     }
 }

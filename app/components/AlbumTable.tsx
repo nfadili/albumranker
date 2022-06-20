@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, forwardRef } from 'react';
+import { useCallback, useState, useEffect, forwardRef, useMemo } from 'react';
 import { Table, createStyles, Checkbox } from '@mantine/core';
 import {
     resetServerContext,
@@ -85,6 +85,7 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
             <Table sx={{ tableLayout: 'auto' }}>
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Name</th>
                         <th>Artist</th>
                         <th>Release Date</th>
@@ -148,6 +149,10 @@ function AlbumRow({
         [classes.hiddenRow]: album.isHidden
     });
 
+    // TODO: Parse image data elsewhere for performance boost
+    const images = useMemo(() => JSON.parse(album.images), [album.images]);
+    const image = images[2] ?? images[1] ?? images[0];
+
     return (
         <tr
             className={rowClases}
@@ -155,6 +160,9 @@ function AlbumRow({
             {...provided.draggableProps}
             {...provided.dragHandleProps}
         >
+            <td>
+                <img height={image.height} width={image.width} src={image.url} />
+            </td>
             <td className={cellClasses}>{album.name}</td>
             <td className={cellClasses}>{album.artist}</td>
             <td className={cellClasses}>{album.releaseDate}</td>

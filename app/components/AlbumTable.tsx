@@ -161,7 +161,7 @@ function AlbumRow({
             {...provided.dragHandleProps}
         >
             <td>
-                <img height={image.height} width={image.width} src={image.url} />
+                <img height={image?.height} width={image?.width} src={image?.url} />
             </td>
             <td className={cellClasses}>{album.name}</td>
             <td className={cellClasses}>{album.artist}</td>

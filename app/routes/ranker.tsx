@@ -91,7 +91,10 @@ export default function Ranker() {
     };
 
     const handleShareClick = () => {
-        const content = orderedAlbums.map((a, i) => `${i + 1}. ${a.name}`).join('\n');
+        const content = orderedAlbums
+            .filter((a) => !a.isHidden)
+            .map((a, i) => `${i + 1}. ${a.name}`)
+            .join('\n');
         navigator?.clipboard?.writeText(content);
 
         showNotification({
@@ -121,7 +124,7 @@ export default function Ranker() {
                         <Button onClick={handleSaveClick} type='submit'>
                             Save
                         </Button>
-                        <Button variant='light' onClick={handleShareClick} type='submit'>
+                        <Button variant='light' onClick={handleShareClick} type='button'>
                             Share
                         </Button>
                     </Group>

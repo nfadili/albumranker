@@ -50,5 +50,7 @@ model UserSpotifyAlbum {
   rank        Int?
   spotifyId   String
 
+  isHidden Boolean @default(false)
+
   @@id([userId, spotifyId])
 }

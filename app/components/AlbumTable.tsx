@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Table, createStyles, Button, ActionIcon } from '@mantine/core';
+import { useCallback, useState, useEffect, forwardRef } from 'react';
+import { Table, createStyles, Checkbox } from '@mantine/core';
 import {
     resetServerContext,
     DragDropContext,
@@ -10,18 +10,29 @@ import {
     DraggableProvided,
     DraggableStateSnapshot
 } from 'react-beautiful-dnd';
+import classNames from 'classnames';
 import type { UserSpotifyAlbum } from '~/spotify/client.server';
+import { findLastIndex } from '~/utils';
 
 // Must be called if using SSR
 resetServerContext();
 
 const useStyles = createStyles((theme) => ({
     cell: {
+        boxSizing: 'border-box'
+    },
+    draggingCell: {
         width: '50%'
     },
-    dragging: {
+    draggingRow: {
         display: 'table',
-        background: theme.colors.gray[0]
+        background: theme.colors.gray[3]
+    },
+    hiddenCell: {
+        color: theme.colors.gray[6]
+    },
+    hiddenRow: {
+        background: theme.colors.gray[1]
     }
 }));
 
@@ -32,6 +43,11 @@ interface IProps {
 
 export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => {
     const [albums, setAlbums] = useState(data);
+
+    // Whenever table state changes, update the parent
+    useEffect(() => {
+        onChange(albums);
+    }, [albums, onChange]);
 
     const onDragEnd = useCallback(
         (result: DropResult) => {
@@ -48,12 +64,21 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
             // Save order in local state
             const items = reorder(albums, result.source.index, result.destination.index);
             setAlbums(items);
-
-            // Notify parent
-            onChange(items);
         },
         [setAlbums, albums]
     );
+
+    const handleHiddenClick = (i: number) => (id: string, hidden: boolean) => {
+        // Move newly hidden items to the bottom of the list and newly unhidden items
+        // to the top of the hidden items.
+        const destinationIndex = hidden
+            ? albums.length - 1
+            : findLastIndex(albums, (a) => !a.isHidden) + 1;
+
+        const items = reorder(albums, i, destinationIndex);
+        items[destinationIndex].isHidden = hidden;
+        setAlbums(items);
+    };
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
@@ -63,6 +88,7 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
                         <th>Name</th>
                         <th>Artist</th>
                         <th>Release Date</th>
+                        <th>Hide</th>
                     </tr>
                 </thead>
                 <Droppable droppableId='table'>
@@ -87,6 +113,7 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
                                             provided={provided}
                                             snapshot={snapshot}
                                             album={record}
+                                            onHiddenChange={handleHiddenClick(index)}
                                         />
                                     )}
                                 </Draggable>
@@ -103,24 +130,40 @@ export const AlbumTable = forwardRef(({ data, onChange }: IProps, parentRef) => 
 function AlbumRow({
     snapshot,
     album,
-    provided
+    provided,
+    onHiddenChange
 }: {
     album: UserSpotifyAlbum;
     provided: DraggableProvided;
     snapshot: DraggableStateSnapshot;
+    onHiddenChange: (id: string, checked: boolean) => void;
 }) {
     const { classes } = useStyles();
+    const cellClasses = classNames(classes.cell, {
+        [classes.draggingCell]: snapshot.isDragging,
+        [classes.hiddenCell]: album.isHidden
+    });
+    const rowClases = classNames({
+        [classes.draggingRow]: snapshot.isDragging,
+        [classes.hiddenRow]: album.isHidden
+    });
 
     return (
         <tr
-            className={snapshot.isDragging ? classes.dragging : undefined}
+            className={rowClases}
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
         >
-            <td className={classes.cell}>{album.name}</td>
-            <td className={classes.cell}>{album.artist}</td>
-            <td className={classes.cell}>{album.releaseDate}</td>
+            <td className={cellClasses}>{album.name}</td>
+            <td className={cellClasses}>{album.artist}</td>
+            <td className={cellClasses}>{album.releaseDate}</td>
+            <td className={cellClasses}>
+                <Checkbox
+                    checked={album.isHidden}
+                    onChange={(e) => onHiddenChange(album.spotifyId, e.currentTarget.checked)}
+                />
+            </td>
         </tr>
     );
 }

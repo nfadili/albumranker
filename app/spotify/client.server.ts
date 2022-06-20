@@ -85,7 +85,8 @@ export async function saveUserAlbumsForYear(request: Request, albums: UserSpotif
                 }
             },
             data: {
-                rank: album.rank
+                rank: album.rank,
+                isHidden: album.isHidden
             }
         });
     }

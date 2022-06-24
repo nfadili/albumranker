@@ -5,6 +5,7 @@ import { getAllUsers } from '~/models/user.server';
 import { LinkText } from '~/components/LinkText';
 import { User } from '~/spotify/client.server';
 import { User as UserIcon } from 'tabler-icons-react';
+import { useOptionalUser } from '~/utils';
 
 type LoaderData = {
     users: User[];

@@ -19,7 +19,10 @@ resetServerContext();
 
 const useStyles = createStyles((theme) => ({
     table: {
-        tableLayout: 'auto'
+        tableLayout: 'auto',
+        '& tbody tr td': {
+            padding: 4
+        }
     },
     cell: {
         boxSizing: 'border-box'

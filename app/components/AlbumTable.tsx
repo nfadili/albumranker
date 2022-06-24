@@ -1,14 +1,16 @@
 import { useCallback, useState, useEffect, forwardRef, useMemo } from 'react';
 import { Table, createStyles, Checkbox, Anchor, Text } from '@mantine/core';
-import {
-    resetServerContext,
-    DragDropContext,
-    Droppable,
-    Draggable,
+import type {
     DropResult,
     DroppableProvided,
     DraggableProvided,
     DraggableStateSnapshot
+} from 'react-beautiful-dnd';
+import {
+    resetServerContext,
+    DragDropContext,
+    Droppable,
+    Draggable
 } from 'react-beautiful-dnd';
 import classNames from 'classnames';
 import type { UserSpotifyAlbum } from '~/spotify/client.server';

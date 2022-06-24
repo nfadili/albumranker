@@ -1,11 +1,10 @@
 import { Container, List, Text, ThemeIcon } from '@mantine/core';
 import { useLoaderData } from '@remix-run/react';
-import { LoaderFunction } from '@remix-run/server-runtime';
+import type { LoaderFunction } from '@remix-run/server-runtime';
 import { getAllUsers } from '~/models/user.server';
 import { LinkText } from '~/components/LinkText';
-import { User } from '~/spotify/client.server';
+import type { User } from '~/spotify/client.server';
 import { User as UserIcon } from 'tabler-icons-react';
-import { useOptionalUser } from '~/utils';
 
 type LoaderData = {
     users: User[];

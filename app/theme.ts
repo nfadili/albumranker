@@ -1,5 +1,5 @@
 // or if you want to "extend" standard colors
-import { Tuple, DefaultMantineColor, MantineThemeOverride } from '@mantine/core';
+import type { Tuple, DefaultMantineColor, MantineThemeOverride } from '@mantine/core';
 
 type ExtendedCustomColors = 'brand' | DefaultMantineColor;
 

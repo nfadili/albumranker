@@ -4,10 +4,12 @@ import { redirect } from '@remix-run/node';
 import { useState } from 'react';
 import { Button, Container, Group, Loader, Select, Stack, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
+import type {
+    UserSpotifyAlbum
+} from '~/spotify/client.server';
 import {
     isSpotifyAccountLinked,
-    syncAllAlbumsForUser,
-    UserSpotifyAlbum
+    syncAllAlbumsForUser
 } from '~/spotify/client.server';
 import {
     getAllUserAlbumsByYear,

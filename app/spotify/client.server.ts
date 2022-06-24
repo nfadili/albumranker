@@ -2,9 +2,10 @@ import { redirect } from '@remix-run/node';
 import { getSpotifyClient } from '~/spotify/auth.server';
 import { prisma } from '~/db.server';
 import { getUser } from '~/session.server';
-import type { UserSpotifyAlbum as _UserSpotifyAlbum } from '@prisma/client';
+import type { UserSpotifyAlbum as _UserSpotifyAlbum, User as _User } from '@prisma/client';
 
 export type UserSpotifyAlbum = _UserSpotifyAlbum;
+export type User = _User;
 
 export async function isSpotifyAccountLinked(request: Request) {
     const client = await getSpotifyClient(request);
@@ -144,4 +145,16 @@ export async function syncAllAlbumsForUser(request: Request) {
             console.log('error creating album', album.name, (error as Error).message);
         }
     }
+}
+
+export async function getAllUserAlbumsByYearByUserId(userId: string, year: string) {
+    return prisma.userSpotifyAlbum.findMany({
+        where: {
+            userId,
+            year
+        },
+        orderBy: {
+            rank: 'asc'
+        }
+    });
 }

@@ -50,19 +50,13 @@ export async function getAllUserAlbumsByYear(request: Request, year: string) {
     });
 }
 
-export async function getAllUserAlbumYears(request: Request) {
-    // User must be logged in
-    const user = await getUser(request);
-    if (!user) {
-        throw redirect('/auth/login');
-    }
-
+export async function getAllUserAlbumYears(userId: string) {
     const years = await prisma.userSpotifyAlbum.findMany({
         select: {
             year: true
         },
         where: {
-            userId: user.id
+            userId
         },
         orderBy: {
             year: 'desc'

@@ -86,3 +86,7 @@ export function useUser(): User {
 export function validateEmail(email: unknown): email is string {
     return typeof email === 'string' && email.length > 3 && email.includes('@');
 }
+
+export function getYearOrDefaultFromSearchParams(searchParams: URLSearchParams) {
+    return searchParams.get('year') ?? new Date().getFullYear().toString();
+}

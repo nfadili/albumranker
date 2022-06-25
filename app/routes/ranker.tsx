@@ -4,13 +4,8 @@ import { redirect } from '@remix-run/node';
 import { useState } from 'react';
 import { Button, Container, Group, Loader, Select, Stack, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
-import type {
-    UserSpotifyAlbum
-} from '~/spotify/client.server';
-import {
-    isSpotifyAccountLinked,
-    syncAllAlbumsForUser
-} from '~/spotify/client.server';
+import type { UserSpotifyAlbum } from '~/spotify/client.server';
+import { isSpotifyAccountLinked, syncAllAlbumsForUser } from '~/spotify/client.server';
 import {
     getAllUserAlbumsByYear,
     getAllUserAlbumYears,
@@ -18,20 +13,14 @@ import {
 } from '~/spotify/client.server';
 import { AlbumTable } from '~/components/AlbumTable';
 import { LinkText } from '~/components/LinkText';
+import { getYearOrDefaultFromSearchParams } from '~/utils';
+import { getUser } from '~/session.server';
 
 export const meta: MetaFunction = () => {
     return {
         title: 'AlbumRanker'
     };
 };
-
-function getYearOrDefaultFromSearchParams(searchParams: URLSearchParams) {
-    return searchParams.get('year') ?? new Date().getFullYear().toString();
-}
-
-function getErrorFromSearchParams(searchParams: URLSearchParams) {
-    return !!searchParams.get('error');
-}
 
 type LoaderData = {
     data: UserSpotifyAlbum[];
@@ -40,11 +29,16 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
+    const user = await getUser(request);
+    if (!user) {
+        return redirect('/auth/login');
+    }
+
     const url = new URL(request.url);
     const year = getYearOrDefaultFromSearchParams(url.searchParams);
 
     const spotifyDisabled = !(await isSpotifyAccountLinked(request));
-    const years = await getAllUserAlbumYears(request);
+    const years = await getAllUserAlbumYears(user.id);
 
     // If the use has no albums from the current year, add the current year as an option
     const currentYear = new Date().getFullYear().toString();
@@ -208,4 +202,8 @@ export default function Ranker() {
             <footer>{error && <Text>Something went wrong</Text>}</footer>
         </Form>
     );
+}
+
+function getErrorFromSearchParams(searchParams: URLSearchParams) {
+    return !!searchParams.get('error');
 }

@@ -27,7 +27,7 @@
         "@mantine/core": "^4.1.5",
         "@mantine/hooks": "^4.1.5",
         "@mantine/notifications": "^4.2.10",
-        "@mantine/ssr": "^4.1.5",
+        "@mantine/ssr": "^5.4.1",
         "@prisma/client": "^3.11.1",
         "@remix-run/node": "^1.6.1",
         "@remix-run/react": "^1.6.1",

@@ -1,10 +1,12 @@
-import { redirect } from '@remix-run/node';
-import { getSpotifyClient } from '~/spotify/auth.server';
 import { prisma } from '~/db.server';
 import { getUser } from '~/session.server';
-import type { UserSpotifyAlbum as _UserSpotifyAlbum, User as _User } from '@prisma/client';
+import { getSpotifyClient } from '~/spotify/auth.server';
 
-export type UserSpotifyAlbum = _UserSpotifyAlbum;
+import { redirect } from '@remix-run/node';
+
+import type { User as _User } from '@prisma/client';
+import type { UserSpotifyAlbum } from '~/types';
+
 export type User = _User;
 
 export async function isSpotifyAccountLinked(request: Request) {
@@ -39,7 +41,7 @@ export async function getAllUserAlbumsByYear(request: Request, year: string) {
         throw redirect('/auth/login');
     }
 
-    return prisma.userSpotifyAlbum.findMany({
+    const albums = await prisma.userSpotifyAlbum.findMany({
         where: {
             userId: user.id,
             year
@@ -48,6 +50,9 @@ export async function getAllUserAlbumsByYear(request: Request, year: string) {
             rank: 'asc'
         }
     });
+
+    const hiddenLast = [...albums].sort((a, b) => Number(a.isHidden) - Number(b.isHidden));
+    return hiddenLast;
 }
 
 export async function getAllUserAlbumYears(userId: string) {
@@ -122,8 +127,8 @@ export async function syncAllAlbumsForUser(request: Request) {
                     images: JSON.stringify(album.images),
                     uri: album.uri,
 
-                    // Set by this app
-                    rank: null
+                    // Ensure the album is ranked last in existing lists
+                    rank: albums.length
                 },
                 update: {
                     artist: album.artists.map((a) => a.name).join(', '),

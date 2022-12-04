@@ -1,15 +1,17 @@
-import { useCallback, useState, useEffect, forwardRef, useMemo } from 'react';
-import { Table, createStyles, Checkbox, Anchor, Text } from '@mantine/core';
+import classNames from 'classnames';
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Draggable, Droppable, resetServerContext } from 'react-beautiful-dnd';
+import { findLastIndex } from '~/utils';
+
+import { Anchor, Checkbox, createStyles, Table, Text } from '@mantine/core';
+
 import type {
     DropResult,
     DroppableProvided,
     DraggableProvided,
     DraggableStateSnapshot
 } from 'react-beautiful-dnd';
-import { resetServerContext, DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import classNames from 'classnames';
-import type { UserSpotifyAlbum } from '~/spotify/client.server';
-import { findLastIndex } from '~/utils';
+import type { UserSpotifyAlbum } from '~/types';
 
 // Must be called if using SSR
 resetServerContext();

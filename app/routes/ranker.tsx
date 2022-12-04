@@ -1,20 +1,20 @@
-import { Form, useLoaderData, useSearchParams, useTransition } from '@remix-run/react';
-import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
-import { redirect } from '@remix-run/node';
 import { useState } from 'react';
-import { Button, Container, Group, Loader, Select, Stack, Text } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
-import type { UserSpotifyAlbum } from '~/spotify/client.server';
-import { isSpotifyAccountLinked, syncAllAlbumsForUser } from '~/spotify/client.server';
-import {
-    getAllUserAlbumsByYear,
-    getAllUserAlbumYears,
-    saveUserAlbumsForYear
-} from '~/spotify/client.server';
 import { AlbumTable } from '~/components/AlbumTable';
 import { LinkText } from '~/components/LinkText';
-import { getYearOrDefaultFromSearchParams } from '~/utils';
 import { getUser } from '~/session.server';
+import {
+    getAllUserAlbumsByYear, getAllUserAlbumYears, isSpotifyAccountLinked, saveUserAlbumsForYear,
+    syncAllAlbumsForUser
+} from '~/spotify/client.server';
+import { getYearOrDefaultFromSearchParams } from '~/utils';
+
+import { Button, Container, Group, Loader, Select, Stack, Text } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
+import { redirect } from '@remix-run/node';
+import { Form, useLoaderData, useSearchParams, useTransition } from '@remix-run/react';
+
+import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
+import type { UserSpotifyAlbum } from '~/types';
 
 export const meta: MetaFunction = () => {
     return {
@@ -50,6 +50,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
     const data = albums.map((a) => ({
         ...a,
+        createdAt: a.createdAt.toISOString(),
+        updatedAt: a.updatedAt.toISOString(),
         releaseDate:
             a.releaseDate.getMonth() +
             1 +

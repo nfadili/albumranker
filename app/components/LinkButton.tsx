@@ -7,7 +7,7 @@ export const LinkButton = ({
     to,
     children,
     ...props
-}: _ButtonProps & React.ComponentPropsWithoutRef<'button'> & { label: string } & LinkProps) => {
+}: _ButtonProps & React.ComponentPropsWithoutRef<'button'> & LinkProps) => {
     return (
         <Button<typeof Link> component={Link} to={to} {...props}>
             {children}

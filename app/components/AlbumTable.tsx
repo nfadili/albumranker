@@ -4,6 +4,7 @@ import { DragDropContext, Draggable, Droppable, resetServerContext } from 'react
 import { findLastIndex } from '~/utils';
 
 import { Anchor, Checkbox, createStyles, Table, Text } from '@mantine/core';
+import { useViewportSize } from '@mantine/hooks';
 
 import type {
     DropResult,
@@ -51,6 +52,8 @@ export const AlbumTable = forwardRef(
     ({ data, onChange, disableEdit = false }: IProps, parentRef) => {
         const { classes } = useStyles();
         const [albums, setAlbums] = useState(data);
+        const { width } = useViewportSize();
+        const isMobile = width < 500;
 
         // Whenever table state changes, update the parent
         useEffect(() => {
@@ -106,9 +109,11 @@ export const AlbumTable = forwardRef(
                             <th>
                                 <Text>Artist</Text>
                             </th>
-                            <th>
-                                <Text>Release Date</Text>
-                            </th>
+                            {!isMobile && (
+                                <th>
+                                    <Text>Release Date</Text>
+                                </th>
+                            )}
                             {!disableEdit && (
                                 <th>
                                     <Text>Hide</Text>
@@ -141,6 +146,7 @@ export const AlbumTable = forwardRef(
                                                 album={record}
                                                 onHiddenChange={handleHiddenClick(index)}
                                                 disableEdit={disableEdit}
+                                                isMobile={isMobile}
                                             />
                                         )}
                                     </Draggable>
@@ -161,13 +167,15 @@ function AlbumRow({
     album,
     provided,
     onHiddenChange,
-    disableEdit
+    disableEdit,
+    isMobile
 }: {
     album: UserSpotifyAlbum;
     provided: DraggableProvided;
     snapshot: DraggableStateSnapshot;
     onHiddenChange: (id: string, checked: boolean) => void;
     disableEdit: boolean;
+    isMobile: boolean;
 }) {
     const { classes } = useStyles();
     const cellClasses = classNames(classes.cell, {
@@ -182,6 +190,8 @@ function AlbumRow({
     // TODO: Parse image data elsewhere for performance boost
     const images = useMemo(() => JSON.parse(album.images), [album.images]);
     const image = images[2] ?? images[1] ?? images[0];
+    const height = (isMobile ? image?.height / 2 : image?.height) ?? 0;
+    const width = (isMobile ? image?.width / 2 : image?.width) ?? 0;
 
     return (
         <tr
@@ -191,7 +201,7 @@ function AlbumRow({
             {...provided.dragHandleProps}
         >
             <td>
-                <img height={image?.height} width={image?.width} src={image?.url} alt='' />
+                <img height={height} width={width} src={image?.url} alt='' />
             </td>
             <td className={cellClasses}>
                 <Anchor href={album.uri ?? '#'}>{album.name}</Anchor>
@@ -199,9 +209,11 @@ function AlbumRow({
             <td className={cellClasses}>
                 <Text>{album.artist}</Text>
             </td>
-            <td className={cellClasses}>
-                <Text>{album.releaseDate}</Text>
-            </td>
+            {!isMobile && (
+                <td className={cellClasses}>
+                    <Text>{album.releaseDate}</Text>
+                </td>
+            )}
             {!disableEdit && (
                 <td className={cellClasses}>
                     <Checkbox

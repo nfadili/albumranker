@@ -7,6 +7,7 @@
         "postinstall": "remix setup node",
         "build": "run-s build:*",
         "build:remix": "remix build",
+        "db:generate": "prisma generate",
         "dev": "run-p dev:*",
         "dev:remix": "cross-env NODE_ENV=development binode -- @remix-run/dev:remix dev",
         "format": "prettier --write .",

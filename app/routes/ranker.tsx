@@ -3,7 +3,10 @@ import { AlbumTable } from '~/components/AlbumTable';
 import { LinkText } from '~/components/LinkText';
 import { getUser } from '~/session.server';
 import {
-    getAllUserAlbumsByYear, getAllUserAlbumYears, isSpotifyAccountLinked, saveUserAlbumsForYear,
+    getAllUserAlbumsByYear,
+    getAllUserAlbumYears,
+    isSpotifyAccountLinked,
+    saveUserAlbumsForYear,
     syncAllAlbumsForUser
 } from '~/spotify/client.server';
 import { getYearOrDefaultFromSearchParams } from '~/utils';
@@ -105,8 +108,8 @@ export default function Ranker() {
 
     const handleShareClick = () => {
         const content = orderedAlbums
-            .filter((a) => !a.isHidden)
-            .map((a, i) => `${i + 1}. ${a.name}`)
+            .filter((album: any) => !album.isHidden)
+            .map((album: any, i: number) => `${i + 1}. ${album.name} - ${album.artist}`)
             .join('\n');
         navigator?.clipboard?.writeText(content);
 

@@ -1,5 +1,6 @@
 import { Header as MHeader } from '@mantine/core';
-import { Button, Group } from '@mantine/core';
+import { Button, Group, ActionIcon, useMantineColorScheme } from '@mantine/core';
+import { Sun, MoonStars } from 'tabler-icons-react';
 import { Form } from '@remix-run/react';
 import { LinkButton } from '~/components/LinkButton';
 import { LinkText } from '~/components/LinkText';
@@ -7,6 +8,8 @@ import { useOptionalUser } from '~/utils';
 
 export const Header = () => {
     const user = useOptionalUser();
+    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+    const dark = colorScheme === 'dark';
 
     return (
         <MHeader height={60} p='xs'>
@@ -27,6 +30,14 @@ export const Header = () => {
                                     Logout
                                 </Button>
                             </Form>
+                            <ActionIcon
+                                variant='outline'
+                                color={dark ? 'yellow' : 'blue'}
+                                onClick={() => toggleColorScheme()}
+                                title='Toggle color scheme'
+                            >
+                                {dark ? <Sun /> : <MoonStars />}
+                            </ActionIcon>
                         </>
                     ) : (
                         <>

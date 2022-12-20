@@ -108,8 +108,8 @@ export default function Ranker() {
 
     const handleShareClick = () => {
         const content = orderedAlbums
-            .filter((album: any) => !album.isHidden)
-            .map((album: any, i: number) => `${i + 1}. ${album.name} - ${album.artist}`)
+            .filter((album) => !album.isHidden)
+            .map((album, i) => `${i + 1}. ${album.name} - ${album.artist}`)
             .join('\n');
         navigator?.clipboard?.writeText(content);
 

@@ -226,8 +226,8 @@ function useTheme() {
     return context;
 }
 
-function isTheme(value: unknown): value is ColorScheme {
-    return typeof value === 'string' && themes.includes(value as ColorScheme);
+function isTheme(value: unknown): value is Theme {
+    return typeof value === 'string' && themes.includes(value as Theme);
 }
 
 export const lightTheme: MantineThemeOverride = {

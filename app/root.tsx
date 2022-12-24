@@ -1,21 +1,29 @@
 import type { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
 import { Header } from '~/components/Header';
 
-import {
-    AppShell,
-    createEmotionCache,
-    MantineProvider,
-    ColorSchemeProvider,
-    ColorScheme
-} from '@mantine/core';
+import { AppShell, createEmotionCache, MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import { StylesPlaceholder } from '@mantine/remix';
-import { json } from '@remix-run/node';
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
-
-import { getUser } from './session.server';
-import { lightTheme, darkTheme } from './theme';
-import { useState } from 'react';
+import {
+    Links,
+    LiveReload,
+    Meta,
+    Outlet,
+    Scripts,
+    ScrollRestoration,
+    useLoaderData
+} from '@remix-run/react';
+import { getUser, getThemeSession } from './session.server';
+import {
+    Theme,
+    ThemeBody,
+    ThemeHead,
+    ThemeProvider,
+    useTheme,
+    lightTheme,
+    darkTheme
+} from '~/theme-provider';
 
 const emotionCache = createEmotionCache({ key: 'mantine' });
 
@@ -51,49 +59,53 @@ export const meta: MetaFunction = () => ({
 
 type LoaderData = {
     user: Awaited<ReturnType<typeof getUser>>;
+    theme: Theme | null;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-    return json<LoaderData>({
-        user: await getUser(request)
-    });
+    const themeSession = await getThemeSession(request);
+    return json<LoaderData>({ theme: themeSession.getTheme(), user: await getUser(request) });
 };
 
-export default function Document() {
-    const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
-    const toggleColorScheme = (value?: ColorScheme) => {
-        setColorScheme(value || colorScheme === 'dark' ? 'light' : 'dark');
-    };
+function Document() {
+    const [theme] = useTheme();
+    const data = useLoaderData();
+
     return (
         <html lang='en'>
             <head>
                 <StylesPlaceholder />
                 <Meta />
                 <Links />
+                <ThemeHead ssrTheme={Boolean(data.theme)} />
             </head>
             <body>
-                <ColorSchemeProvider
-                    colorScheme={colorScheme}
-                    toggleColorScheme={toggleColorScheme}
+                <ThemeBody ssrTheme={Boolean(data.theme)} />
+                <MantineProvider
+                    withGlobalStyles
+                    withNormalizeCSS
+                    emotionCache={emotionCache}
+                    theme={theme === 'dark' ? darkTheme : lightTheme}
                 >
-                    <MantineProvider
-                        withGlobalStyles
-                        withNormalizeCSS
-                        emotionCache={emotionCache}
-                        theme={colorScheme === 'dark' ? darkTheme : lightTheme}
-                    >
-                        <NotificationsProvider>
-                            <AppShell padding='md' header={<Header />}>
-                                <Outlet />
-                            </AppShell>
-                        </NotificationsProvider>
-                    </MantineProvider>
-                </ColorSchemeProvider>
-
+                    <NotificationsProvider>
+                        <AppShell padding='md' header={<Header />}>
+                            <Outlet />
+                        </AppShell>
+                    </NotificationsProvider>
+                </MantineProvider>
                 <ScrollRestoration />
                 <Scripts />
                 <LiveReload />
             </body>
         </html>
+    );
+}
+
+export default function WithProviders() {
+    const data = useLoaderData();
+    return (
+        <ThemeProvider specifiedTheme={data.theme}>
+            <Document />
+        </ThemeProvider>
     );
 }

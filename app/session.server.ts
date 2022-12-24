@@ -4,6 +4,9 @@ import invariant from 'tiny-invariant';
 import type { User } from '~/models/user.server';
 import { getUserById } from '~/models/user.server';
 
+import { isTheme } from './theme-provider';
+import type { Theme } from './theme-provider';
+
 invariant(process.env.SIGNING_SECRET, 'SIGNING_SECRET must be set');
 
 export const sessionStorage = createCookieSessionStorage({
@@ -15,6 +18,23 @@ export const sessionStorage = createCookieSessionStorage({
         sameSite: 'lax',
         secrets: [process.env.SIGNING_SECRET],
         secure: process.env.NODE_ENV === 'production'
+    }
+});
+
+// TODO: add secret to sign cookie
+// const sessionSecret = process.env.SESSION_SECRET;
+// if (!sessionSecret) {
+//     throw new Error('SESSION_SECRET must be set');
+// }
+
+export const themeStorage = createCookieSessionStorage({
+    cookie: {
+        name: 'theme-cookie',
+        secure: true,
+        secrets: ['secr3t'],
+        sameSite: 'lax',
+        path: '/',
+        httpOnly: true
     }
 });
 
@@ -93,4 +113,16 @@ export async function logout(request: Request) {
             'Set-Cookie': await sessionStorage.destroySession(session)
         }
     });
+}
+
+export async function getThemeSession(request: Request) {
+    const session = await themeStorage.getSession(request.headers.get('Cookie'));
+    return {
+        getTheme: () => {
+            const themeValue = session.get('theme');
+            return isTheme(themeValue) ? themeValue : null;
+        },
+        setTheme: (theme: Theme) => session.set('theme', theme),
+        commit: () => themeStorage.commitSession(session)
+    };
 }

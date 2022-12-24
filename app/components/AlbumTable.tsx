@@ -32,13 +32,13 @@ const useStyles = createStyles((theme) => ({
     },
     draggingRow: {
         display: 'table',
-        background: theme.colors.gray[3]
+        background: theme.colorScheme === 'light' ? theme.colors.gray[3] : theme.colors.gray[8]
     },
     hiddenCell: {
-        color: theme.colors.gray[6]
+        color: theme.colorScheme === 'light' ? theme.colors.gray[6] : theme.colors.gray[9]
     },
     hiddenRow: {
-        background: theme.colors.gray[1]
+        background: theme.colorScheme === 'light' ? theme.colors.gray[1] : theme.colors.gray[9]
     }
 }));
 

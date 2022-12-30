@@ -157,3 +157,8 @@ export async function getAllUserAlbumsByYearByUserId(userId: string, year: strin
         }
     });
 }
+
+export async function unlinkSpotifyAccountForUser(userId: string) {
+    await prisma.userSpotifyCredential.delete({ where: { userId } });
+    await prisma.userSpotifyAlbum.deleteMany({ where: { userId } });
+}

@@ -1,16 +1,14 @@
 import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { LinkButton } from '~/components/LinkButton';
 import { getUser } from '~/session.server';
-import {
-    isSpotifyAccountLinked, syncAllAlbumsForUser, unlinkSpotifyAccountForUser
-} from '~/spotify/client.server';
+import { unlinkSpotifyAccountForUser } from '~/spotify/auth.server';
+import { isSpotifyAccountLinked, syncAllAlbumsForUser } from '~/spotify/client.server';
 
 import { Button, Container, Group, Loader, Stack, Text } from '@mantine/core';
 import { redirect } from '@remix-run/node';
 import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
 
 import type { User } from '~/models/user.server';
-
 const INTENT = 'intent';
 const INTENT_SYNC = 'sync';
 const INTENT_UNLINK = 'unlink;';

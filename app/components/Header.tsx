@@ -1,12 +1,17 @@
-import { Header as MHeader } from '@mantine/core';
-import { Button, Group } from '@mantine/core';
-import { Form } from '@remix-run/react';
+import { MoonStars as IconMoonStars, Sun as IconSun } from 'tabler-icons-react';
 import { LinkButton } from '~/components/LinkButton';
 import { LinkText } from '~/components/LinkText';
+import { ColorScheme } from '~/theme';
 import { useOptionalUser } from '~/utils';
 
-export const Header = () => {
+import { ActionIcon, Button, Group, Header as MHeader, useMantineColorScheme } from '@mantine/core';
+import { Form } from '@remix-run/react';
+
+export const Header = ({ onToggleColorScheme }: any) => {
     const user = useOptionalUser();
+    const { colorScheme } = useMantineColorScheme();
+
+    const isDark = colorScheme === ColorScheme.Dark;
 
     return (
         <MHeader height={60} p='xs'>
@@ -37,6 +42,14 @@ export const Header = () => {
                         </>
                     )}
                 </Group>
+                <ActionIcon
+                    variant='outline'
+                    color={isDark ? 'yellow' : 'blue'}
+                    onClick={() => onToggleColorScheme()}
+                    title='Toggle color scheme'
+                >
+                    {isDark ? <IconSun size={18} /> : <IconMoonStars size={18} />}
+                </ActionIcon>
             </Group>
         </MHeader>
     );

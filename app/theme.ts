@@ -9,7 +9,13 @@ declare module '@mantine/core' {
     }
 }
 
-export const theme: MantineThemeOverride = {
+export enum ColorScheme {
+    Dark = 'dark',
+    Light = 'light'
+}
+
+export const lightTheme: MantineThemeOverride = {
+    colorScheme: 'light',
     colors: {
         brand: [
             '#edf0ff',
@@ -25,4 +31,9 @@ export const theme: MantineThemeOverride = {
         ]
     },
     primaryColor: 'brand'
+};
+
+export const darkTheme: MantineThemeOverride = {
+    colorScheme: ColorScheme.Dark,
+    primaryColor: 'orange'
 };

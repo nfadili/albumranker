@@ -1,14 +1,17 @@
 import type { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
+import { useState } from 'react';
 import { Header } from '~/components/Header';
 
-import { AppShell, createEmotionCache, MantineProvider } from '@mantine/core';
+import { AppShell, ColorSchemeProvider, createEmotionCache, MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import { StylesPlaceholder } from '@mantine/remix';
 import { json } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 
 import { getUser } from './session.server';
-import { theme } from './theme';
+import { ColorScheme, darkTheme, lightTheme } from './theme';
+
+import type { User } from '@prisma/client';
 
 const emotionCache = createEmotionCache({ key: 'mantine' });
 
@@ -43,16 +46,28 @@ export const meta: MetaFunction = () => ({
 });
 
 type LoaderData = {
-    user: Awaited<ReturnType<typeof getUser>>;
+    user: User | null;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
+    const user = await getUser(request);
     return json<LoaderData>({
-        user: await getUser(request)
+        user
     });
 };
 
 export default function Document() {
+    const [colorScheme, setColorScheme] = useState<ColorScheme>(ColorScheme.Light); // TODO: This value should come from the database
+    const toggleColorScheme = (value?: ColorScheme) =>
+        setColorScheme(
+            value || (colorScheme === ColorScheme.Dark ? ColorScheme.Light : ColorScheme.Dark)
+        );
+    const isDarkTheme = colorScheme === ColorScheme.Dark;
+
+    const handleToggleColorScheme = () => {
+        console.log('hello!'); // TODO: Tell the database to toggle the scheme for this user
+    };
+
     return (
         <html lang='en'>
             <head>
@@ -61,18 +76,27 @@ export default function Document() {
                 <Links />
             </head>
             <body>
-                <MantineProvider
-                    withGlobalStyles
-                    withNormalizeCSS
-                    emotionCache={emotionCache}
-                    theme={theme}
+                <ColorSchemeProvider
+                    colorScheme={colorScheme}
+                    toggleColorScheme={toggleColorScheme}
                 >
-                    <NotificationsProvider>
-                        <AppShell padding='md' header={<Header />}>
-                            <Outlet />
-                        </AppShell>
-                    </NotificationsProvider>
-                </MantineProvider>
+                    <MantineProvider
+                        key={colorScheme}
+                        withGlobalStyles
+                        withNormalizeCSS
+                        emotionCache={emotionCache}
+                        theme={isDarkTheme ? darkTheme : lightTheme}
+                    >
+                        <NotificationsProvider>
+                            <AppShell
+                                padding='md'
+                                header={<Header onToggleColorScheme={handleToggleColorScheme} />}
+                            >
+                                <Outlet />
+                            </AppShell>
+                        </NotificationsProvider>
+                    </MantineProvider>
+                </ColorSchemeProvider>
 
                 <ScrollRestoration />
                 <Scripts />

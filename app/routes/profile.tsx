@@ -1,4 +1,5 @@
 import type { ActionFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
+import React from 'react';
 import { LinkButton } from '~/components/LinkButton';
 import { getUser } from '~/session.server';
 import { unlinkSpotifyAccountForUser } from '~/spotify/auth.server';
@@ -7,7 +8,7 @@ import { isSpotifyAccountLinked, syncAllAlbumsForUser } from '~/spotify/client.s
 import { Button, Container, Group, Loader, Stack, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { json, redirect } from '@remix-run/node';
-import { Form, Link, useActionData, useLoaderData, useTransition } from '@remix-run/react';
+import { Form, Link, useLoaderData, useSubmit, useTransition } from '@remix-run/react';
 
 import type { User } from '~/models/user.server';
 const INTENT = 'intent';
@@ -18,10 +19,6 @@ export const meta: MetaFunction = () => {
     return {
         title: 'Profile'
     };
-};
-
-type ActionData = {
-    wasUnlinked?: boolean;
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -64,7 +61,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Index() {
     const transition = useTransition();
-    const action = useActionData<ActionData>();
+    const submit = useSubmit();
+
     const { user, spotifyEnabled } = useLoaderData<LoaderData>();
     if (transition.submission) {
         return (
@@ -74,12 +72,13 @@ export default function Index() {
         );
     }
 
-    if (action?.wasUnlinked) {
+    const handleUnlinkClick: React.FormEventHandler<HTMLFormElement> = async (event) => {
+        submit(event.currentTarget);
         showNotification({
             title: 'Spotify Account Unlinked',
             message: 'Your account was unlinked from spotify and all ranker data has been deleted.'
         });
-    }
+    };
 
     return (
         <Container>
@@ -88,11 +87,13 @@ export default function Index() {
                     <>
                         <Text>{`Hi ${user.email}!`}</Text>
                         {spotifyEnabled && (
-                            <Form method='post'>
-                                <Group>
+                            <Group>
+                                <Form method='post'>
                                     <Button name={INTENT} value={INTENT_SYNC} type='submit'>
                                         Sync Spotify Albums
                                     </Button>
+                                </Form>
+                                <Form method='post' onSubmit={handleUnlinkClick}>
                                     <Button
                                         name={INTENT}
                                         value={INTENT_UNLINK}
@@ -102,8 +103,8 @@ export default function Index() {
                                     >
                                         Unlink Spotify Account
                                     </Button>
-                                </Group>
-                            </Form>
+                                </Form>
+                            </Group>
                         )}
                         {!spotifyEnabled && (
                             <LinkButton to='/spotify/login'>Login to spotify</LinkButton>

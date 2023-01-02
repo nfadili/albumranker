@@ -19,8 +19,12 @@ export const meta: MetaFunction = () => {
     };
 };
 
-export let action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request }) => {
     const user = await getUser(request);
+    if (!user) {
+        return redirect('/auth/login');
+    }
+
     const formData = await request.formData();
     const intent = formData.get(INTENT);
 
@@ -38,7 +42,7 @@ type LoaderData = {
     user?: User | null;
     spotifyEnabled: boolean;
 };
-export let loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request }) => {
     const user = await getUser(request);
     if (!user) {
         return redirect('/auth/login');

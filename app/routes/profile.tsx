@@ -5,8 +5,9 @@ import { unlinkSpotifyAccountForUser } from '~/spotify/auth.server';
 import { isSpotifyAccountLinked, syncAllAlbumsForUser } from '~/spotify/client.server';
 
 import { Button, Container, Group, Loader, Stack, Text } from '@mantine/core';
-import { redirect } from '@remix-run/node';
-import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
+import { showNotification } from '@mantine/notifications';
+import { json, redirect } from '@remix-run/node';
+import { Form, Link, useActionData, useLoaderData, useTransition } from '@remix-run/react';
 
 import type { User } from '~/models/user.server';
 const INTENT = 'intent';
@@ -17,6 +18,10 @@ export const meta: MetaFunction = () => {
     return {
         title: 'Profile'
     };
+};
+
+type ActionData = {
+    wasUnlinked?: boolean;
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -34,7 +39,7 @@ export const action: ActionFunction = async ({ request }) => {
     }
     if (intent === INTENT_UNLINK) {
         await unlinkSpotifyAccountForUser(user!.id);
-        return redirect('/');
+        return json({ wasUnlinked: true });
     }
 };
 
@@ -59,6 +64,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Index() {
     const transition = useTransition();
+    const action = useActionData<ActionData>();
     const { user, spotifyEnabled } = useLoaderData<LoaderData>();
     if (transition.submission) {
         return (
@@ -66,6 +72,13 @@ export default function Index() {
                 <Loader />
             </Container>
         );
+    }
+
+    if (action?.wasUnlinked) {
+        showNotification({
+            title: 'Spotify Account Unlinked',
+            message: 'Your account was unlinked from spotify and all ranker data has been deleted.'
+        });
     }
 
     return (

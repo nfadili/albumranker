@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
+import { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { useState } from 'react';
 import { Header } from '~/components/Header';
 
@@ -6,12 +6,22 @@ import { AppShell, ColorSchemeProvider, createEmotionCache, MantineProvider } fr
 import { NotificationsProvider } from '@mantine/notifications';
 import { StylesPlaceholder } from '@mantine/remix';
 import { json } from '@remix-run/node';
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
+import {
+    Links,
+    LiveReload,
+    Meta,
+    Outlet,
+    Scripts,
+    ScrollRestoration,
+    useLoaderData,
+    useSubmit
+} from '@remix-run/react';
 
 import { getUser } from './session.server';
 import { ColorScheme, darkTheme, lightTheme } from './theme';
 
-import type { User } from '@prisma/client';
+import type { User, UserSettings } from '@prisma/client';
+import { getUserSettings } from './models/user.server';
 
 const emotionCache = createEmotionCache({ key: 'mantine' });
 
@@ -47,26 +57,37 @@ export const meta: MetaFunction = () => ({
 
 type LoaderData = {
     user: User | null;
+    userSettings: UserSettings | null;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
     const user = await getUser(request);
+    let userSettings: UserSettings | null = null;
+    if (user) {
+        userSettings = await getUserSettings(user.id);
+    }
+
     return json<LoaderData>({
-        user
+        user,
+        userSettings
     });
 };
 
 export default function Document() {
-    const [colorScheme, setColorScheme] = useState<ColorScheme>(ColorScheme.Light); // TODO: This value should come from the database
+    const submit = useSubmit();
+    const { userSettings } = useLoaderData<LoaderData>();
+    const [colorScheme, setColorScheme] = useState<ColorScheme>(
+        userSettings?.colorScheme ?? ColorScheme.Light
+    );
     const toggleColorScheme = (value?: ColorScheme) =>
         setColorScheme(
             value || (colorScheme === ColorScheme.Dark ? ColorScheme.Light : ColorScheme.Dark)
         );
-    const isDarkTheme = colorScheme === ColorScheme.Dark;
-
     const handleToggleColorScheme = () => {
-        console.log('hello!'); // TODO: Tell the database to toggle the scheme for this user
+        submit(null, { method: 'post', action: '/settings/colorScheme', replace: true });
+        toggleColorScheme();
     };
+    const isDarkTheme = colorScheme === ColorScheme.Dark;
 
     return (
         <html lang='en'>

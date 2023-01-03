@@ -1,11 +1,11 @@
 import SpotifyWebApi from 'spotify-web-api-node';
-import type _SpotifyClient from 'spotify-web-api-node';
+import { Cipher } from '~/cipher';
 import { prisma } from '~/db.server';
 import logger from '~/logger.server';
 import { getUserId, logout } from '~/session.server';
-import type { EncryptedData } from '~/cipher';
-import { Cipher } from '~/cipher';
 
+import type _SpotifyClient from 'spotify-web-api-node';
+import type { EncryptedData } from '~/cipher';
 /********************************************************
  * Types
  *********************************************************/
@@ -188,6 +188,11 @@ async function getUserSpotifyCredentials(request: Request): Promise<SpotifyCrede
         refreshToken: decryptedRefreshToken ? decryptedRefreshToken : null,
         expiresAt: credentials.expiresAt.toISOString()
     };
+}
+
+export async function unlinkSpotifyAccountForUser(userId: string) {
+    await prisma.userSpotifyCredential.delete({ where: { userId } });
+    await prisma.userSpotifyAlbum.deleteMany({ where: { userId } });
 }
 
 /********************************************************

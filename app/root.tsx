@@ -81,7 +81,7 @@ export default function Document() {
     const submit = useSubmit();
     const { userSettings } = useLoaderData<LoaderData>();
     const { theme, colorScheme, toggleColorScheme, handleToggleColorScheme } = useColorScheme(
-        userSettings.colorScheme,
+        userSettings.colorScheme as ColorScheme,
         submit
     );
     return (

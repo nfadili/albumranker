@@ -1,5 +1,4 @@
-import { getUser } from '~/session.server';
-import { redirect } from '@remix-run/node';
+import { ColorScheme } from './../theme';
 import type { Password, User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -15,21 +14,18 @@ export async function getUserSettings(userId: User['id']) {
     return prisma.userSettings.findUnique({ where: { userId } });
 }
 
-export async function updateUserColorScheme(request: Request) {
-    // User must be logged in
-    const user = await getUser(request);
-    if (!user) {
-        throw redirect('/');
-    }
-
-    const currentColorScheme = await getUserSettings(user.id);
+export async function updateUserColorScheme(userId: User['id']) {
+    const currentColorScheme = await getUserSettings(userId);
     if (currentColorScheme) {
         return prisma.userSettings.update({
             where: {
-                userId: user.id
+                userId: userId
             },
             data: {
-                colorScheme: currentColorScheme.colorScheme === 'dark' ? 'light' : 'dark'
+                colorScheme:
+                    currentColorScheme.colorScheme === ColorScheme.Dark
+                        ? ColorScheme.Light
+                        : ColorScheme.Dark
             }
         });
     }

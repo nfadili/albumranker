@@ -1,15 +1,27 @@
-import type { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
+import { LinksFunction, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { Header } from '~/components/Header';
 
-import { AppShell, MantineProvider } from '@mantine/core';
+import { AppShell, ColorSchemeProvider, MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import { StylesPlaceholder } from '@mantine/remix';
 import { json } from '@remix-run/node';
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
+import {
+    Links,
+    LiveReload,
+    Meta,
+    Outlet,
+    Scripts,
+    ScrollRestoration,
+    useLoaderData,
+    useSubmit
+} from '@remix-run/react';
 
 import { emotionCache } from './emotionCache';
 import { getUser } from './session.server';
-import { theme } from './theme';
+import { ColorScheme, useColorScheme } from './theme';
+
+import type { User, UserSettings } from '@prisma/client';
+import { getUserSettings } from './models/user.server';
 
 export const links: LinksFunction = () => {
     return [
@@ -42,16 +54,36 @@ export const meta: MetaFunction = () => ({
 });
 
 type LoaderData = {
-    user: Awaited<ReturnType<typeof getUser>>;
+    user: User | null;
+    userSettings: Partial<UserSettings>;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
+    const user = await getUser(request);
+    const defaultUserSettings = { colorScheme: ColorScheme.Light };
+
+    if (!user) {
+        return json<LoaderData>({
+            user: null,
+            userSettings: defaultUserSettings
+        });
+    }
+
+    const userSettings = (await getUserSettings(user.id)) ?? defaultUserSettings;
+
     return json<LoaderData>({
-        user: await getUser(request)
+        user,
+        userSettings
     });
 };
 
 export default function Document() {
+    const submit = useSubmit();
+    const { userSettings } = useLoaderData<LoaderData>();
+    const { theme, colorScheme, toggleColorScheme, handleToggleColorScheme } = useColorScheme(
+        userSettings.colorScheme as ColorScheme,
+        submit
+    );
     return (
         <html lang='en'>
             <head>
@@ -60,18 +92,26 @@ export default function Document() {
                 <Links />
             </head>
             <body>
-                <MantineProvider
-                    withGlobalStyles
-                    withNormalizeCSS
-                    emotionCache={emotionCache}
-                    theme={theme}
+                <ColorSchemeProvider
+                    colorScheme={colorScheme}
+                    toggleColorScheme={toggleColorScheme}
                 >
-                    <NotificationsProvider>
-                        <AppShell padding='md' header={<Header />}>
-                            <Outlet />
-                        </AppShell>
-                    </NotificationsProvider>
-                </MantineProvider>
+                    <MantineProvider
+                        withGlobalStyles
+                        withNormalizeCSS
+                        emotionCache={emotionCache}
+                        theme={theme}
+                    >
+                        <NotificationsProvider>
+                            <AppShell
+                                padding='md'
+                                header={<Header onToggleColorScheme={handleToggleColorScheme} />}
+                            >
+                                <Outlet />
+                            </AppShell>
+                        </NotificationsProvider>
+                    </MantineProvider>
+                </ColorSchemeProvider>
 
                 <ScrollRestoration />
                 <Scripts />

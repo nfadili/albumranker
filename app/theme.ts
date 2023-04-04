@@ -1,5 +1,6 @@
 // or if you want to "extend" standard colors
-import type { Tuple, DefaultMantineColor, MantineThemeOverride } from '@mantine/core';
+import { Tuple, DefaultMantineColor, MantineThemeOverride } from '@mantine/core';
+import { useState } from 'react';
 
 type ExtendedCustomColors = 'brand' | DefaultMantineColor;
 
@@ -9,7 +10,13 @@ declare module '@mantine/core' {
     }
 }
 
-export const theme: MantineThemeOverride = {
+export enum ColorScheme {
+    Dark = 'dark',
+    Light = 'light'
+}
+
+const lightTheme: MantineThemeOverride = {
+    colorScheme: 'light',
     colors: {
         brand: [
             '#edf0ff',
@@ -25,4 +32,39 @@ export const theme: MantineThemeOverride = {
         ]
     },
     primaryColor: 'brand'
+};
+
+const darkTheme: MantineThemeOverride = {
+    colorScheme: ColorScheme.Dark,
+    primaryColor: 'orange'
+};
+
+export const useColorScheme = (userColorScheme?: ColorScheme, onToggleColorScheme?: any) => {
+    const [colorScheme, setColorScheme] = useState<ColorScheme>(
+        userColorScheme ?? ColorScheme.Light
+    );
+
+    const toggleColorScheme = (value?: ColorScheme) =>
+        setColorScheme(
+            value || (colorScheme === ColorScheme.Dark ? ColorScheme.Light : ColorScheme.Dark)
+        );
+    const handleToggleColorScheme = () => {
+        onToggleColorScheme(null, {
+            method: 'post',
+            action: '/settings/colorScheme',
+            replace: true
+        });
+        toggleColorScheme();
+    };
+    const isDarkTheme = colorScheme === ColorScheme.Dark;
+    const isLightTheme = colorScheme === ColorScheme.Light;
+
+    return {
+        isDarkTheme,
+        isLightTheme,
+        colorScheme,
+        toggleColorScheme,
+        handleToggleColorScheme,
+        theme: isDarkTheme ? darkTheme : lightTheme
+    };
 };

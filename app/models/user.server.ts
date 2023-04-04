@@ -1,3 +1,4 @@
+import { ColorScheme } from './../theme';
 import type { Password, User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -7,6 +8,27 @@ export type { User } from '@prisma/client';
 
 export async function getUserById(id: User['id']) {
     return prisma.user.findUnique({ where: { id } });
+}
+
+export async function getUserSettings(userId: User['id']) {
+    return prisma.userSettings.findUnique({ where: { userId } });
+}
+
+export async function updateUserColorScheme(userId: User['id']) {
+    const currentColorScheme = await getUserSettings(userId);
+    if (currentColorScheme) {
+        return prisma.userSettings.update({
+            where: {
+                userId: userId
+            },
+            data: {
+                colorScheme:
+                    currentColorScheme.colorScheme === ColorScheme.Dark
+                        ? ColorScheme.Light
+                        : ColorScheme.Dark
+            }
+        });
+    }
 }
 
 export async function getUserByEmail(email: User['email']) {

@@ -19,3 +19,29 @@ spec:
                   image: <__IMAGE__>
                   ports:
                       - containerPort: 3000
+                  env:
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: albumranker
+                                key: DATABASE_URL
+                      - name: SIGNING_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: albumranker
+                                key: SIGNING_SECRET
+                      - name: SPOTIFY_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: albumranker
+                                key: SPOTIFY_CLIENT_ID
+                      - name: SPOTIFY_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: albumranker
+                                key: SPOTIFY_CLIENT_SECRET
+                      - name: SPOTIFY_REDIRECT_URI
+                        valueFrom:
+                            secretKeyRef:
+                                name: albumranker
+                                key: SPOTIFY_REDIRECT_URI

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: albumranker
+    namespace: albumranker
+spec:
+    selector:
+        matchLabels:
+            app: albumranker
+    replicas: 2
+    template:
+        metadata:
+            labels:
+                app: albumranker
+        spec:
+            containers:
+                - name: albumranker
+                  image: registry.digitalocean.com/nfadili-personal/albumranker:testing
+                  ports:
+                      - containerPort: 3000

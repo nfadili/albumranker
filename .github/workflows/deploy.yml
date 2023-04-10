@@ -51,7 +51,9 @@ jobs:
             - name: Type check
               run: npm run typecheck --if-present
     deploy:
+        name: Deploy
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        needs: [lint, typecheck]
         runs-on: ubuntu-latest
         steps:
             # Setup
@@ -75,7 +77,7 @@ jobs:
 
             # Deploy and verify
             - name: Update deployment file
-              run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|${{ secrets.REGISTRY_NAME }}/albumranker:'${TAG}'|' $GITHUB_WORKSPACE/k8s/deployment.yaml
+              run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<__IMAGE__>|${{ secrets.REGISTRY_NAME }}/albumranker:'${TAG}'|' $GITHUB_WORKSPACE/k8s/deployment.yaml
 
             - name: Save DigitalOcean kubeconfig with short-lived credentials
               run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.CLUSTER_NAME }}

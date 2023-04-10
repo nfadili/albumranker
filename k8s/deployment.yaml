@@ -14,7 +14,8 @@ spec:
                 app: albumranker
         spec:
             containers:
+                # The <__IMAGE__> value is replaced with an image name during deployment (in .github/workflows/deploy.yml)
                 - name: albumranker
-                  image: registry.digitalocean.com/nfadili-personal/albumranker:testing
+                  image: <__IMAGE__>
                   ports:
                       - containerPort: 3000

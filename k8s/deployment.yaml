@@ -45,3 +45,19 @@ spec:
                             secretKeyRef:
                                 name: albumranker
                                 key: SPOTIFY_REDIRECT_URI
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+    name: letsencrypt-production
+spec:
+    acme:
+        email: safe.salt4183@fastmail.com
+        server: https://acme-v02.api.letsencrypt.org/directory
+        privateKeySecretRef:
+            name: letsencrypt-production
+        solvers:
+            - http01:
+                  ingress:
+                      class: nginx

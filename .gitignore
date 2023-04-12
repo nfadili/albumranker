@@ -4,5 +4,3 @@ node_modules
 /public/build
 .env
 
-/prisma/data.db
-/prisma/data.db-journal

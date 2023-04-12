@@ -47,6 +47,20 @@ spec:
                                 key: SPOTIFY_REDIRECT_URI
 
 ---
+apiVersion: v1
+kind: Service
+metadata:
+    name: albumranker
+    namespace: albumranker
+spec:
+    selector:
+        app.kubernetes.io/name: albumranker-com-service
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 3000
+
+---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

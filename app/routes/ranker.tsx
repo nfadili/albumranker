@@ -109,7 +109,12 @@ export default function Ranker() {
     const handleShareClick = () => {
         const content = orderedAlbums
             .filter((album) => !album.isHidden)
-            .map((album, i) => `${i + 1}. ${album.name} - ${album.artist}`)
+            .map(
+                (album, i) =>
+                    `${i + 1}. [${album.name}](<https://open.spotify.com/album/${
+                        album.spotifyId
+                    }>) - ${album.artist}`
+            )
             .join('\n');
         navigator?.clipboard?.writeText(content);
 
